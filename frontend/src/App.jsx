@@ -1,31 +1,33 @@
-import react from 'react'
-import { Route,Routes } from 'react-router-dom'
-import Login from './pages/Login'
-import Login from './pages/Feed'
-import Login from './pages/Messages'
-import Login from './pages/Connections'
-import Login from './pages/Profile'
-import Login from './pages/CreatePost'
-
+import { Route, Routes } from 'react-router-dom';
+import Login from './pages/Login';
+import Feed from './pages/Feed';
+import Messages from './pages/Messages';
+import Connection from './pages/Connection';
+import Profile from './pages/Profile';
+import CreatePost from './pages/CreatePost'; 
+import Discover from './pages/Discover';
+import ChatBox from './pages/ChatBox';
+import {useUser} from '@clerk/react'
+import Layout from './pages/Layout';
 
 const App = () => {
+    const {user} =useUser()
+  return (
+    <Routes>
 
-    return (
-        <>
-        <Routes>
-            <Route path ='/' element={<Login/>}>
-            <Route index element={<Feed/>}/>
-            <Route path='messages' element={<Messages/>}/>
-            <Route path='messages/:userId' element={<Chatbox/>}/>
-             <Route path='connections' element={<Connections/>}/>
-             <Route path='discover' element={<Discover/>}/>
-             <Route path='profile' element={<Profile/>}/>
-            <Route path='profile/:profileId' element={<Profile/>}/>
-             <Route path='create-post' element={<CreatePost/>}/>
-            
-            </Route>
-        </Routes>
-        </>
-    )}
+      {/* Main Layout Route with Sidebar, Navbar, and Outlet */}
+      <Route path="/" element={ !user ? <Login/> : <Layout/>}>
+        <Route index element={<Feed />} />
+        <Route path="messages" element={<Messages />} />
+        <Route path="messages/:userId" element={<ChatBox />} />
+        <Route path="connections" element={<Connection />} />
+        <Route path="discover" element={<Discover />} />
+        <Route path="profile" element={<Profile />} />
+        <Route path="profile/:profileId" element={<Profile />} />
+        <Route path="create-post" element={<CreatePost />} />
+      </Route>
+    </Routes>
+  );
+};
 
-export default App
+export default App;

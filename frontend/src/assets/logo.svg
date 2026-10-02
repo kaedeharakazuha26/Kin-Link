@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Modern Gradient Palette -->
+    <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4F46E5" />
+      <stop offset="50%" stop-color="#7C3AED" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#06B6D4" />
+      <stop offset="100%" stop-color="#3B82F6" />
+    </linearGradient>
+
+    <!-- Subtle Drop Shadow for Favicon/Tab visibility -->
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#4F46E5" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Background Layer for clear tab contrast -->
+  <rect width="512" height="512" rx="112" fill="#0F172A"/>
+
+  <!-- Main Symbol: Intersecting Kin (Nodes) & Link (Infinity Dynamic) -->
+  <g filter="url(#softGlow)">
+    <!-- Left Loop Node (Kin Focus) -->
+    <path d="M 176 160 
+             C 123 160, 80 203, 80 256 
+             C 80 309, 123 352, 176 352 
+             C 220 352, 256 320, 276 280 
+             L 232 256 
+             C 220 280, 199 296, 176 296 
+             C 154 296, 136 278, 136 256 
+             C 136 234, 154 216, 176 216 
+             C 199 216, 220 232, 232 256 
+             L 276 232 
+             C 256 192, 220 160, 176 160 Z" 
+          fill="url(#brandGradient)" />
+
+    <!-- Right Loop Node (Link Focus) -->
+    <path d="M 336 160 
+             C 292 160, 256 192, 236 232 
+             L 280 256 
+             C 292 232, 313 216, 336 216 
+             C 358 216, 376 234, 376 256 
+             C 376 278, 358 296, 336 296 
+             C 313 296, 292 280, 280 256 
+             L 236 280 
+             C 256 320, 292 352, 336 352 
+             C 389 352, 432 309, 432 256 
+             C 432 203, 389 160, 336 160 Z" 
+          fill="url(#brandGradient)" />
+
+    <!-- Central Connection Node / Spark -->
+    <circle cx="256" cy="256" r="28" fill="url(#accentGradient)" />
+    <circle cx="256" cy="256" r="14" fill="#FFFFFF" />
+
+    <!-- Kin Nodes (Representing individuals/family connection) -->
+    <circle cx="176" cy="256" r="16" fill="#FFFFFF" opacity="0.9" />
+    <circle cx="336" cy="256" r="16" fill="#FFFFFF" opacity="0.9" />
+  </g>
+</svg>
