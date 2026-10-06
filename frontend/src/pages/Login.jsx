@@ -63,10 +63,13 @@ const Login = () => {
 
         {/* Top bar */}
         <div className="relative z-10 flex items-center justify-between animate-[rise-in_.7s_ease-out_both]">
-          <img src={assets.logo} alt="Kin-Link Logo" className="h-9 md:h-10 object-contain brightness-0 invert" />
-          <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-300/80 border border-indigo-400/20 bg-indigo-400/10 rounded-full px-3.5 py-1.5">
-            <Sparkles className="size-3.5" /> For creators
+         {assets.logo ? (
+        <img src={assets.logo} alt="Kin-Link logo" className="h-9 md:h-10 object-contain" />
+         ) : (
+          <span className="text-xl font-extrabold tracking-tight">
+             Kin<span className="text-indigo-400">-Link</span>
           </span>
+         )}
         </div>
 
         {/* Headline */}
