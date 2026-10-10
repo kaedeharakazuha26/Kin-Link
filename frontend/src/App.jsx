@@ -9,12 +9,14 @@ import Discover from './pages/Discover';
 import ChatBox from './pages/ChatBox';
 import {useUser} from '@clerk/react'
 import Layout from './pages/Layout';
+import {Toaster} from 'react-hot-toast'
 
 const App = () => {
     const {user} =useUser()
   return (
+  <>
+  <Toaster/>
     <Routes>
-
       {/* Main Layout Route with Sidebar, Navbar, and Outlet */}
       <Route path="/" element={ !user ? <Login/> : <Layout/>}>
         <Route index element={<Feed />} />
@@ -27,6 +29,7 @@ const App = () => {
         <Route path="create-post" element={<CreatePost />} />
       </Route>
     </Routes>
+    </>
   );
 };
 
