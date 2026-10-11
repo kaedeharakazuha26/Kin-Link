@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { dummyStoriesData } from "../assets/assets";
 import { Plus } from "lucide-react";
 import moment from 'moment'
@@ -9,6 +9,7 @@ const StoriesBar = () => {
   const [stories, setStories] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [viewStory, setViewStory] = useState(null);
+  const scrollRef = useRef(null);
 
   const fetchStories = async () => {
     setStories(dummyStoriesData);
@@ -18,8 +19,33 @@ const StoriesBar = () => {
     fetchStories();
   }, []);
 
+  // Convert vertical mouse-wheel into horizontal scroll for the stories strip
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const onWheel = (e) => {
+      // Leave native horizontal gestures (trackpads) alone
+      if (Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
+
+      const canScrollLeft = el.scrollLeft > 0;
+      const canScrollRight = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
+      const scrollingRight = e.deltaY > 0;
+
+      // Only hijack the wheel when the strip can actually move that way —
+      // otherwise the page keeps its normal vertical scroll
+      if ((scrollingRight && canScrollRight) || (!scrollingRight && canScrollLeft)) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+      }
+    };
+
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
+
   return (
-    <div className="w-screen sm:w-[calc(100vw-200px)] lg:max-w-2xl no-scrollbar overflow-x-auto px-4">
+    <div ref={scrollRef} className="w-screen sm:w-[calc(100vw-200px)] lg:max-w-2xl no-scrollbar overflow-x-auto px-4">
       <div className="flex gap-4 pb-5">
         {/* add story card */}
         <div onClick={() => setShowModal(true)} className="rounded-lg shadow-sm min-w-28 max-w-28 max-h-40 aspect-3/4 cursor-pointer hover:shadow-lg transition-all duration-200 border-2 border-dashed border-indigo-300 bg-linear-to-b from-indigo-50 to-white">
@@ -33,7 +59,7 @@ const StoriesBar = () => {
 
         {/* story cards */}
         {stories.map((story, index) => (
-          <div onClick={() => setViewStory(story)} key={index} className={`relative rounded-lg shadow min-w-30 max-w-eo max-h-40 cursor-pointer hover:shadow-lg transition-all duration-200 bg-linear-to-b from-indigo-500 to-purple-600 hover:from-indigo-700 hover:to-purple-800 active:scale-95`}>
+          <div onClick={() => setViewStory(story)} key={index} className={`relative rounded-lg shadow min-w-30 max-w-30 max-h-40 cursor-pointer hover:shadow-lg transition-all duration-200 bg-linear-to-b from-indigo-500 to-purple-600 hover:from-indigo-700 hover:to-purple-800 active:scale-95`}>
             <img src={story.user.profile_picture} alt="" className='absolute size-8 top-3 left-3 z-10 rounded-full ring ring-gray-100 shadow' />
             <p className='absolute top-19 left-3 text-white/60 text-sm truncate max-w-24'>{story.content}</p>
             <p className='text-white absolute bottom-1 right-2 z-10 text-xs'>{moment(story.createdAt).fromNow()}</p>
@@ -45,7 +71,7 @@ const StoriesBar = () => {
                       <img src={story.media_url} alt="" className='h-full w-full object-cover hover:scale-110 transition duration-500 opacity-70 hover:opacity-80' />
 
                       :
-                      <video src={story.media_url} className='h-full w-full obect-cover hover:scale-110 transition duration-500 opacity-70 hover:opacity-80' />
+                      <video src={story.media_url} className='h-full w-full object-cover hover:scale-110 transition duration-500 opacity-70 hover:opacity-80' />
                   }
 
                 </div>
