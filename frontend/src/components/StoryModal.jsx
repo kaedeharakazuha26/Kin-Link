@@ -25,7 +25,7 @@ const StoryModal = ({ setShowModal, fetchStories }) => {
     }
 
     return (
-        <div className='fixed inset-0 z-[110] min-h-screen bg-black/80 backdrop-blur text-white flex items-center justify-center p-4'>
+        <div className='fixed inset-0 z-110 min-h-screen bg-black/80 backdrop-blur text-white flex items-center justify-center p-4'>
             <div className='w-full max-w-md'>
                 <div className='text-center mb-4 flex items-center justify-between'>
                     <button onClick={() => setShowModal(false)} className='text-white p-2 cursor-pointer'>
@@ -84,7 +84,7 @@ const StoryModal = ({ setShowModal, fetchStories }) => {
     {/* share story button*/}
                 <button onClick ={()=> toast.promise(handleCreateStory(),{
                     loading: 'Saving...', success: <p> Story Added</p>, error: e => <p>{e.message}</p>
-                })} className ='flex items-center justify-center gap-2 text-white py-3 mt-4 w-full rounded bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 transition cursor-pointer'>
+                })} className ='flex items-center justify-center gap-2 text-white py-3 mt-4 w-full rounded bg-linear-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 transition cursor-pointer'>
                     <Sparkle size={18}/> Share Story
                 </button>
             </div>
