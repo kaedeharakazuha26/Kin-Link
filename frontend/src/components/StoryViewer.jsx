@@ -7,6 +7,32 @@ const StoryViewer = ({ viewStory, setViewStory }) => {
         setViewStory(null)
     }
 
+    const renderContent = () => {
+        switch (viewStory.media_type) {
+            case 'image':
+                return (
+                    <img src={viewStory.media_url} alt="" className='max-w-full max-h-screen object-cotain' />
+                );
+
+            case 'video':
+                return (
+                    <video onEnded={() => setViewStory(null)} src={viewStory.media_url} className=' max-h-screen ' />
+                );
+
+            case 'text':
+                return (
+                    <div className='w-full h-full flex items-center justify-center p-8 text-white text-2xl text-center'>
+                        {viewStory.content}
+
+                    </div>
+                );
+
+
+            default:
+                return null;
+        }
+    }
+
     return (
         <div className="fixed inset-0 h-screen bg-black bg-opacity-90 z-[110] flex items-center justify-center" style={{ backgroundColor: viewStory.media_type === 'text' ? viewStory.background_color : '#000000' }}>
 
@@ -28,6 +54,10 @@ const StoryViewer = ({ viewStory, setViewStory }) => {
             <button onClick={handleClose} className='absolute top-4 right-4 text-white text-3x1 font-bold focus:outline-none'>
                 <X className='w-8 h-8 hover:scale-110 transition cursor-pointer' />
             </button>
+            {/*content wrapper*/}
+            <div className='max-w-[90vw] max-h-[90vh] flex items-center justify-center'>
+                {renderContent()}
+            </div>
         </div>
     )
 }
