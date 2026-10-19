@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import {
@@ -22,6 +22,8 @@ const Layout: React.FC = () => {
   const { user } = useAuthStore();
   const { connectSocket } = useSocketStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [topSearch, setTopSearch] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -30,6 +32,31 @@ const Layout: React.FC = () => {
       connectSocket(user.id);
     }
   }, [user?.id, connectSocket]);
+
+  // Global Cmd+K / Ctrl+K keyboard shortcut to focus search bar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        if (location.pathname !== '/discover') {
+          navigate('/discover');
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [location.pathname, navigate]);
+
+  const handleTopSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = topSearch.trim();
+    if (clean) {
+      navigate(`/discover?q=${encodeURIComponent(clean)}`);
+    } else {
+      navigate('/discover');
+    }
+  };
 
   const friendRequestsCount = user?.friendRequestsReceived?.length ?? 0;
 
@@ -53,18 +80,26 @@ const Layout: React.FC = () => {
             </button>
 
             {/* Omni Search Box */}
-            <div
-              onClick={() => navigate('/discover')}
-              className="flex items-center gap-2.5 px-3.5 py-2 bg-[#161828] hover:bg-[#1c1f33] rounded-2xl w-full max-w-sm text-slate-300 transition-all duration-150 cursor-pointer border border-white/10 hover:border-indigo-500/40"
+            <form
+              onSubmit={handleTopSearchSubmit}
+              className="flex items-center gap-2.5 px-3.5 py-2 bg-[#161828] focus-within:bg-[#1a1d30] rounded-2xl w-full max-w-sm text-slate-300 transition-all duration-150 border border-white/10 focus-within:border-indigo-500/50 focus-within:ring-2 focus-within:ring-indigo-500/20"
             >
               <Search className="w-4 h-4 text-indigo-400 shrink-0" />
-              <span className="text-xs sm:text-sm font-medium text-slate-400 truncate">
-                Search friends, stories, posts...
-              </span>
-              <kbd className="hidden md:inline-flex ml-auto text-[10px] font-semibold text-slate-300 bg-white/10 px-2 py-0.5 rounded-lg border border-white/10 shadow-2xs">
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={topSearch}
+                onChange={(e) => setTopSearch(e.target.value)}
+                placeholder="Search friends, posts, topics..."
+                className="bg-transparent border-none text-xs sm:text-sm text-white placeholder:text-slate-400 focus:outline-none w-full"
+              />
+              <kbd
+                onClick={() => searchInputRef.current?.focus()}
+                className="hidden md:inline-flex ml-auto text-[10px] font-semibold text-slate-400 bg-white/10 px-1.5 py-0.5 rounded-lg border border-white/10 shadow-2xs shrink-0 cursor-pointer"
+              >
                 ⌘K
               </kbd>
-            </div>
+            </form>
           </div>
 
           {/* Quick Action Navigation & Profile Avatar */}

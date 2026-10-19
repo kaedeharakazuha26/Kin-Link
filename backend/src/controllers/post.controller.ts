@@ -288,3 +288,32 @@ export const sharePost = async (req: AuthenticatedRequest, res: Response): Promi
     res.status(500).json({ success: false, message: 'Failed to share post.' });
   }
 };
+
+export const searchPosts = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const q = ((req.query.q as string) || '').toLowerCase().trim();
+
+    const snapshot = await db.collection('posts').orderBy('createdAt', 'desc').limit(100).get();
+    const posts: Post[] = [];
+
+    snapshot.forEach((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
+      const p = doc.data() as Post;
+      if (!q) {
+        posts.push(p);
+      } else {
+        const matchContent = p.content && p.content.toLowerCase().includes(q);
+        const matchAuthor = (p.authorName && p.authorName.toLowerCase().includes(q)) ||
+                            (p.authorUsername && p.authorUsername.toLowerCase().includes(q));
+        if (matchContent || matchAuthor) {
+          posts.push(p);
+        }
+      }
+    });
+
+    res.json({ success: true, posts });
+  } catch (error) {
+    console.error('Search posts error:', error);
+    res.status(500).json({ success: false, message: 'Failed to search posts.' });
+  }
+};
+

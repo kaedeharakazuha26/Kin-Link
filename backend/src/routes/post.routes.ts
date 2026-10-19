@@ -8,6 +8,7 @@ import {
   getComments,
   deletePost,
   sharePost,
+  searchPosts,
 } from '../controllers/post.controller';
 import { protectRoute } from '../middleware/auth.middleware';
 import { upload } from '../utils/upload';
@@ -15,6 +16,7 @@ import { upload } from '../utils/upload';
 const router = Router();
 
 router.get('/feed', protectRoute, getFeedPosts);
+router.get('/search', protectRoute, searchPosts);
 router.get('/user/:userId', protectRoute, getUserPosts);
 router.post('/', protectRoute, upload.single('media'), createPost);
 router.post('/:postId/like', protectRoute, toggleLikePost);
