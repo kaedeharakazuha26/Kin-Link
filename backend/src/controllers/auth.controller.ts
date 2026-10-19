@@ -60,7 +60,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       username: cleanUsername,
       profilePicture: `https://api.dicebear.com/7.x/avataaars/svg?seed=${cleanUsername}`,
       coverPhoto: 'https://images.unsplash.com/photo-1707343843437-caacff5cfa74?auto=format&fit=crop&w=1200&q=80',
-      bio: 'Hello! I just joined Kin-Link.',
+      bio: 'Hello! I just joined LINK.',
       location: '',
       friends: [],
       friendRequestsReceived: [],

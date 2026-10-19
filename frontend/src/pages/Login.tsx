@@ -104,7 +104,7 @@ const Login: React.FC = () => {
             </div>
             <div>
               <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-indigo-100 to-indigo-300 bg-clip-text text-transparent">
-                Kin-Link
+                LINK
               </span>
               <span className="block text-[11px] font-medium uppercase tracking-widest text-indigo-400/80">
                 Next-Gen Social Network
@@ -273,7 +273,7 @@ const Login: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    Sign In to Kin-Link
+                    Sign In to LINK
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -288,7 +288,7 @@ const Login: React.FC = () => {
             <form onSubmit={handleRegisterSubmit} className="space-y-4">
               <div>
                 <h2 className="text-2xl font-bold tracking-tight text-white">Create an account</h2>
-                <p className="text-sm text-zinc-400 mt-1">Join Kin-Link to share moments and chat with friends.</p>
+                <p className="text-sm text-zinc-400 mt-1">Join LINK to share moments and chat with friends.</p>
               </div>
 
               <div className="space-y-3.5">

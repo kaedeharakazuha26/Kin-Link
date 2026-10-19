@@ -27,7 +27,7 @@ app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
 // Health Check
 app.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString(), app: 'Kin-Link API' });
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), app: 'LINK API' });
 });
 
 // API Routes

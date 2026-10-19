@@ -55,7 +55,7 @@ const Discover: React.FC = () => {
       {/* Header & Search */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Discover People</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Find classmates, coworkers, creators, and new friends on Kin-Link.</p>
+        <p className="text-sm text-gray-500 mt-0.5">Find classmates, coworkers, creators, and new friends on LINK.</p>
 
         <form onSubmit={handleSearchSubmit} className="mt-5 relative max-w-xl">
           <Search className="w-5 h-5 absolute left-4 top-3.5 text-gray-400" />

@@ -11,16 +11,33 @@ const toSafeUser = (u: User): SafeUser => {
 
 export const getUserProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const userIdOrUsername = String(req.params.userIdOrUsername);
+    let userIdOrUsername = String(req.params.userIdOrUsername || '');
+
+    if (userIdOrUsername === 'me' || userIdOrUsername === 'undefined' || !userIdOrUsername) {
+      if (req.user?.id) {
+        userIdOrUsername = req.user.id;
+      }
+    }
+
     let userDoc = await db.collection('users').doc(userIdOrUsername).get();
 
     if (!userDoc.exists) {
       const q = await db.collection('users').where('username', '==', userIdOrUsername.toLowerCase()).limit(1).get();
       if (q.empty) {
-        res.status(404).json({ success: false, message: 'User not found.' });
-        return;
+        // Fallback to currently logged in user if available
+        if (req.user?.id) {
+          userDoc = await db.collection('users').doc(req.user.id).get();
+          if (!userDoc.exists) {
+            res.status(404).json({ success: false, message: 'User not found.' });
+            return;
+          }
+        } else {
+          res.status(404).json({ success: false, message: 'User not found.' });
+          return;
+        }
+      } else {
+        userDoc = q.docs[0];
       }
-      userDoc = q.docs[0];
     }
 
     const userData = userDoc.data() as User;
@@ -310,11 +327,15 @@ export const getFriendRequests = async (req: AuthenticatedRequest, res: Response
 
 export const getFriendsList = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const userId = String(req.params.userId);
+    let userId = String(req.params.userId || '');
+    if (userId === 'me' || userId === 'undefined' || !userId) {
+      userId = req.user?.id || '';
+    }
+
     const userDoc = await db.collection('users').doc(userId).get();
 
     if (!userDoc.exists) {
-      res.status(404).json({ success: false, message: 'User not found.' });
+      res.json({ success: true, friends: [] });
       return;
     }
 

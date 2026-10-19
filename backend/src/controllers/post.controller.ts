@@ -41,9 +41,8 @@ export const createPost = async (req: AuthenticatedRequest, res: Response): Prom
       authorId: user.id,
       authorName: user.fullName,
       authorUsername: user.username,
-      authorProfilePicture: user.profilePicture,
+      authorProfilePicture: user.profilePicture || '',
       content: content ? content.trim() : '',
-      mediaUrl: mediaUrl || undefined,
       mediaType: detectedMediaType,
       likes: [],
       commentsCount: 0,
@@ -51,6 +50,10 @@ export const createPost = async (req: AuthenticatedRequest, res: Response): Prom
       createdAt: now,
       updatedAt: now,
     };
+
+    if (mediaUrl) {
+      newPost.mediaUrl = mediaUrl;
+    }
 
     await db.collection('posts').doc(postId).set(newPost);
 
@@ -79,7 +82,10 @@ export const getFeedPosts = async (req: AuthenticatedRequest, res: Response): Pr
 
 export const getUserPosts = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const userId = String(req.params.userId);
+    let userId = String(req.params.userId || '');
+    if (userId === 'me' || userId === 'undefined' || !userId) {
+      userId = req.user?.id || '';
+    }
     const snapshot = await db
       .collection('posts')
       .where('authorId', '==', userId)

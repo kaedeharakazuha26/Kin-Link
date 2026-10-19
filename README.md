@@ -1,6 +1,6 @@
-# Kin-Link 🌐
+# LINK 🌐
 
-**Kin-Link** is a modern, full-stack Facebook-inspired social media web application designed for fast, real-time social networking. Built with React (Vite) + TypeScript, Tailwind CSS, Shadcn/ui on the frontend, and Node.js + Express + TypeScript on the backend, with Firebase Firestore, Firebase Storage, and Socket.io for real-time messaging.
+**LINK** is a modern, full-stack Facebook-inspired social media web application designed for fast, real-time social networking. Built with React (Vite) + TypeScript, Tailwind CSS, Shadcn/ui on the frontend, and Node.js + Express + TypeScript on the backend, with Firebase Firestore, ImageKit storage with Sharp compression, and Socket.io for real-time messaging.
 
 ---
 
@@ -41,7 +41,7 @@
 ## 📂 Project Structure
 
 ```text
-Kin-Link/
+LINK/
 ├── backend/                     # Node.js + Express + TypeScript API
 │   ├── src/
 │   │   ├── config/              # Firebase Admin SDK initialization

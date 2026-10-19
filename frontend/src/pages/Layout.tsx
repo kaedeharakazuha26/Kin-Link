@@ -41,7 +41,7 @@ const Layout: React.FC = () => {
               className="flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-full w-full max-w-xs text-gray-500 hover:bg-slate-200/70 transition cursor-pointer"
             >
               <Search className="w-4 h-4 text-gray-400" />
-              <span className="text-xs sm:text-sm">Search Kin-Link friends...</span>
+              <span className="text-xs sm:text-sm">Search LINK friends...</span>
             </div>
           </div>
 

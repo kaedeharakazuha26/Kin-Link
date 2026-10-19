@@ -18,7 +18,7 @@ const io = new SocketIOServer(server, {
 setupSocketIO(io);
 
 server.listen(PORT, () => {
-  console.log(`🚀 Kin-Link Backend Server running on http://localhost:${PORT}`);
+  console.log(`🚀 LINK Backend Server running on http://localhost:${PORT}`);
   console.log(`📡 WebSocket ready on port ${PORT}`);
 });
 

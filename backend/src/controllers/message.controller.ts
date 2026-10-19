@@ -186,10 +186,13 @@ export const sendMessage = async (req: AuthenticatedRequest, res: Response): Pro
       senderId,
       receiverId,
       text: text ? text.trim() : '',
-      mediaUrl: mediaUrl || undefined,
       isRead: false,
       createdAt: now,
     };
+
+    if (mediaUrl) {
+      newMessage.mediaUrl = mediaUrl;
+    }
 
     await convRef.collection('messages').doc(messageId).set(newMessage);
 

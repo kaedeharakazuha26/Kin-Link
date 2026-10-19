@@ -37,15 +37,20 @@ export const createStory = async (req: AuthenticatedRequest, res: Response): Pro
       userId: user.id,
       userName: user.fullName,
       userUsername: user.username,
-      userProfilePicture: user.profilePicture,
+      userProfilePicture: user.profilePicture || '',
       content: content.trim(),
-      mediaUrl: mediaUrl || undefined,
       mediaType: detectedType,
-      background: detectedType === 'text' ? background : undefined,
       views: [],
       createdAt: now.toISOString(),
       expiresAt,
     };
+
+    if (mediaUrl) {
+      newStory.mediaUrl = mediaUrl;
+    }
+    if (detectedType === 'text') {
+      newStory.background = background || '#4f46e5';
+    }
 
     await db.collection('stories').doc(storyId).set(newStory);
 

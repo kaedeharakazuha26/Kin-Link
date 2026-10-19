@@ -108,7 +108,7 @@ const Feed: React.FC = () => {
               className="w-full h-36 object-cover"
             />
           </div>
-          <h4 className="text-sm font-bold text-gray-800">Kin-Link Developer Suite</h4>
+          <h4 className="text-sm font-bold text-gray-800">LINK Developer Suite</h4>
           <p className="text-xs text-gray-500 mt-1 leading-relaxed">
             Build high-performance real-time applications using Node.js, TypeScript, and Firebase.
           </p>

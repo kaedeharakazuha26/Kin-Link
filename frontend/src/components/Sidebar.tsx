@@ -47,7 +47,7 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen }) => {
           </div>
           <div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent tracking-tight">
-              Kin-Link
+              LINK
             </h1>
             <p className="text-[10px] uppercase font-semibold tracking-wider text-gray-400">Social Network</p>
           </div>

@@ -26,7 +26,7 @@ const Profile: React.FC = () => {
   const navigate = useNavigate();
   const { user: currentUser, updateUserProfileState } = useAuthStore();
 
-  const targetId = profileId || currentUser?.id;
+  const targetId = profileId || currentUser?.id || 'me';
 
   const [profile, setProfile] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);

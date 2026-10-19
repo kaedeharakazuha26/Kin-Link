@@ -13,7 +13,7 @@ const Loading: React.FC<LoadingProps> = ({ height = '100vh' }) => {
       className="flex flex-col items-center justify-center gap-3"
     >
       <div className="w-10 h-10 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin" />
-      <span className="text-xs font-medium text-gray-500 animate-pulse">Loading Kin-Link...</span>
+      <span className="text-xs font-medium text-gray-500 animate-pulse">Loading LINK...</span>
     </div>
   );
 };
