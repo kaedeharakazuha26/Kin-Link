@@ -385,26 +385,7 @@ const Feed: React.FC = () => {
           </div>
         </div>
 
-        {/* System & Architecture Status Footer */}
-        <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.04] text-[11px] text-slate-500 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5">
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
-              ImageKit CDN
-            </span>
-            <span className="text-emerald-400 font-semibold text-[10px]">Optimized</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
-              JWT Auth & Security
-            </span>
-            <span className="text-indigo-400 font-semibold text-[10px]">Encrypted</span>
-          </div>
-          <p className="text-[10px] text-slate-600 pt-1 text-center">
-            LINK Platform © 2026 • Private & Secure
-          </p>
-        </div>
+
       </div>
     </div>
   );

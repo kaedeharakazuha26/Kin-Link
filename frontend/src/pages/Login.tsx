@@ -182,21 +182,19 @@ const Login: React.FC = () => {
           <div className="flex p-1 rounded-xl bg-white/5 border border-white/10 mb-8 backdrop-blur-md">
             <button
               onClick={() => setActiveTab('login')}
-              className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${
-                activeTab === 'login'
-                  ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
+              className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${activeTab === 'login'
+                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
+                : 'text-zinc-400 hover:text-white'
+                }`}
             >
               Sign In
             </button>
             <button
               onClick={() => setActiveTab('register')}
-              className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${
-                activeTab === 'register'
-                  ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
+              className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${activeTab === 'register'
+                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
+                : 'text-zinc-400 hover:text-white'
+                }`}
             >
               Create Account
             </button>
@@ -207,7 +205,7 @@ const Login: React.FC = () => {
             <form onSubmit={handleLoginSubmit} className="space-y-5">
               <div>
                 <h2 className="text-2xl font-bold tracking-tight text-white">Welcome back</h2>
-                <p className="text-sm text-zinc-400 mt-1">Enter your credentials to access your feed and messages.</p>
+                <p className="text-sm text-zinc-400 mt-1">Enter your  credentials to access your feed and messages.</p>
               </div>
 
               <div className="space-y-4">
@@ -278,10 +276,10 @@ const Login: React.FC = () => {
                   </>
                 )}
               </Button>
-
               <div className="pt-4 text-center text-xs text-zinc-500 border-t border-white/5">
-                Protected with JWT access & refresh tokens with bcrypt security.
+                Protected with Shit
               </div>
+
             </form>
           ) : (
             /* ===== REGISTER FORM ===== */

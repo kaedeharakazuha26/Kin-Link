@@ -27,9 +27,8 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen }) => {
 
   return (
     <aside
-      className={`fixed sm:static top-0 bottom-0 left-0 z-40 w-72 h-screen flex flex-col justify-between shrink-0 bg-[#0d0f18] border-r border-white/[0.08] text-slate-200 shadow-2xl transition-transform duration-300 ease-in-out ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full sm:translate-x-0'
-      }`}
+      className={`fixed sm:static top-0 bottom-0 left-0 z-40 w-72 h-screen flex flex-col justify-between shrink-0 bg-[#0d0f18] border-r border-white/[0.08] text-slate-200 shadow-2xl transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full sm:translate-x-0'
+        }`}
     >
       <div className="flex flex-col h-full overflow-y-auto no-scrollbar justify-between">
         {/* Top Header Section */}
@@ -62,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen }) => {
                     V2
                   </span>
                 </div>
-                <p className="text-[11px] font-medium text-slate-500 tracking-wide">Next-Gen Social Network</p>
+                <p className="text-[11px] font-medium text-slate-500 tracking-wide">Fucking Shit Social Network</p>
               </div>
             </div>
           </div>
