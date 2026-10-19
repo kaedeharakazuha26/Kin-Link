@@ -20,7 +20,7 @@ export const getConversations = async (req: AuthenticatedRequest, res: Response)
     const snapshot = await db
       .collection('conversations')
       .where('participants', 'array-contains', currentUserId)
-      .orderBy('updatedAt', 'desc')
+      .limit(50)
       .get();
 
     const conversationsWithDetails = [];
@@ -40,6 +40,10 @@ export const getConversations = async (req: AuthenticatedRequest, res: Response)
         otherUser,
       });
     }
+
+    conversationsWithDetails.sort(
+      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
 
     res.json({ success: true, conversations: conversationsWithDetails });
   } catch (error) {
@@ -205,6 +209,21 @@ export const sendMessage = async (req: AuthenticatedRequest, res: Response): Pro
       },
       updatedAt: now,
     });
+
+    // Real-time server socket broadcast
+    try {
+      const io = req.app.get('io');
+      if (io) {
+        io.to(`conv_${conversationId}`).emit('new_message', newMessage);
+        io.emit('message_notification', {
+          conversationId,
+          receiverId,
+          message: newMessage,
+        });
+      }
+    } catch (socketErr) {
+      console.warn('Socket emit error in sendMessage:', socketErr);
+    }
 
     res.status(201).json({ success: true, message: newMessage });
   } catch (error) {

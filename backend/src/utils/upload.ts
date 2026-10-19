@@ -10,10 +10,15 @@ export const upload = multer({
   },
 });
 
-export const uploadFile = async (
+export interface UploadResult {
+  url: string;
+  fileId?: string;
+}
+
+export const uploadFileDetailed = async (
   file: Express.Multer.File,
   folder: 'posts' | 'stories' | 'profiles' | 'chat'
-): Promise<string> => {
+): Promise<UploadResult> => {
   try {
     let uploadBuffer = file.buffer;
     let uploadMimetype = file.mimetype;
@@ -52,18 +57,69 @@ export const uploadFile = async (
         useUniqueFileName: true,
       });
 
-      return response.url;
+      return {
+        url: response.url,
+        fileId: response.fileId,
+      };
     }
 
     // Fallback if ImageKit keys are not set yet
     console.warn(`⚠️ ImageKit not configured, using base64 inline fallback for ${file.originalname}`);
     const base64 = uploadBuffer.toString('base64');
-    return `data:${uploadMimetype};base64,${base64}`;
+    return {
+      url: `data:${uploadMimetype};base64,${base64}`,
+    };
   } catch (error) {
     console.error('Upload error, using inline fallback:', error);
     const base64 = file.buffer.toString('base64');
-    return `data:${file.mimetype};base64,${base64}`;
+    return {
+      url: `data:${file.mimetype};base64,${base64}`,
+    };
+  }
+};
+
+export const uploadFile = async (
+  file: Express.Multer.File,
+  folder: 'posts' | 'stories' | 'profiles' | 'chat'
+): Promise<string> => {
+  const result = await uploadFileDetailed(file, folder);
+  return result.url;
+};
+
+export const deleteFileFromImageKit = async (fileIdOrUrl: string): Promise<boolean> => {
+  if (!imagekit || !fileIdOrUrl) return false;
+  try {
+    // If it's directly a fileId
+    if (!fileIdOrUrl.startsWith('http://') && !fileIdOrUrl.startsWith('https://')) {
+      await imagekit.deleteFile(fileIdOrUrl);
+      console.log(`🗑️ Deleted file from ImageKit by fileId: ${fileIdOrUrl}`);
+      return true;
+    }
+
+    // If it's a URL, search by filename and delete
+    try {
+      const urlObj = new URL(fileIdOrUrl);
+      const filename = path.basename(urlObj.pathname);
+      const files = await imagekit.listFiles({
+        searchQuery: `name = "${filename}"`,
+        limit: 1,
+      });
+
+      if (files && files.length > 0 && (files[0] as any).fileId) {
+        const fileId = (files[0] as any).fileId;
+        await imagekit.deleteFile(fileId);
+        console.log(`🗑️ Deleted file from ImageKit: ${fileId} (${filename})`);
+        return true;
+      }
+    } catch (urlErr) {
+      console.warn('Could not parse ImageKit URL for deletion:', urlErr);
+    }
+    return false;
+  } catch (error) {
+    console.error('Failed to delete file from ImageKit:', error);
+    return false;
   }
 };
 
 export const uploadFileToFirebase = uploadFile;
+

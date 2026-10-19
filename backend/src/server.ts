@@ -16,6 +16,7 @@ const io = new SocketIOServer(server, {
 });
 
 setupSocketIO(io);
+app.set('io', io);
 
 server.listen(PORT, () => {
   console.log(`🚀 LINK Backend Server running on http://localhost:${PORT}`);

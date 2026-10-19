@@ -119,20 +119,27 @@ const Discover: React.FC = () => {
                 </div>
 
                 {!isSelf && (
-                  <div className="pt-2">
+                  <div className="pt-2 flex items-center gap-2">
                     {isFriend ? (
-                      <span className="block text-center text-xs font-semibold text-emerald-600 py-1.5 bg-emerald-50 rounded-xl">
-                        ✓ Already Friends
+                      <span className="flex-1 text-center text-xs font-semibold text-emerald-600 py-2 bg-emerald-50 rounded-xl">
+                        ✓ Friends
                       </span>
                     ) : (
                       <Button
                         onClick={() => handleSendFriendRequest(item.id)}
-                        className="w-full py-2 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex items-center justify-center gap-1.5"
+                        className="flex-1 py-2 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex items-center justify-center gap-1.5"
                       >
                         <UserPlus className="w-3.5 h-3.5" />
                         Add Friend
                       </Button>
                     )}
+                    <button
+                      onClick={() => navigate(`/messages/${item.id}`)}
+                      className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition cursor-pointer"
+                      title="Send message"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                    </button>
                   </div>
                 )}
               </div>

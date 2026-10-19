@@ -22,6 +22,7 @@ export interface Post {
   authorProfilePicture: string;
   content: string;
   mediaUrl?: string;
+  mediaFileId?: string;
   mediaType?: 'image' | 'video' | 'none';
   likes: string[];
   commentsCount: number;

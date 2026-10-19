@@ -49,41 +49,56 @@ const Profile: React.FC = () => {
   const [editLocation, setEditLocation] = useState('');
   const [editProfilePic, setEditProfilePic] = useState<File | null>(null);
   const [editCoverPic, setEditCoverPic] = useState<File | null>(null);
+  const [previewProfilePic, setPreviewProfilePic] = useState<string | null>(null);
+  const [previewCoverPic, setPreviewCoverPic] = useState<string | null>(null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   const fetchProfileData = async () => {
-    if (!targetId) return;
+    const actualTarget = profileId || currentUser?.id || 'me';
     setLoading(true);
     try {
-      const [profileRes, postsRes, friendsRes] = await Promise.all([
-        api.get(`/users/${targetId}`),
-        api.get(`/posts/user/${targetId}`),
-        api.get(`/users/${targetId}/friends`),
+      const [profileRes, postsRes, friendsRes] = await Promise.allSettled([
+        api.get(`/users/${actualTarget}`),
+        api.get(`/posts/user/${actualTarget}`),
+        api.get(`/users/${actualTarget}/friends`),
       ]);
 
-      if (profileRes.data.success) {
-        setProfile(profileRes.data.user);
-        setIsFriend(profileRes.data.isFriend);
-        setHasSentRequest(profileRes.data.hasSentRequest);
-        setHasReceivedRequest(profileRes.data.hasReceivedRequest);
-        setIsSelf(profileRes.data.isSelf);
+      if (profileRes.status === 'fulfilled' && profileRes.value.data.success) {
+        const u = profileRes.value.data.user;
+        setProfile(u);
+        setIsFriend(profileRes.value.data.isFriend);
+        setHasSentRequest(profileRes.value.data.hasSentRequest);
+        setHasReceivedRequest(profileRes.value.data.hasReceivedRequest);
+        setIsSelf(profileRes.value.data.isSelf || u.id === currentUser?.id);
 
         // Pre-fill edit modal fields
-        setEditFullName(profileRes.data.user.fullName || '');
-        setEditBio(profileRes.data.user.bio || '');
-        setEditLocation(profileRes.data.user.location || '');
+        setEditFullName(u.fullName || '');
+        setEditBio(u.bio || '');
+        setEditLocation(u.location || '');
+      } else if (currentUser && (!profileId || profileId === currentUser.id || profileId === 'me')) {
+        // Fallback to currently logged in user
+        setProfile(currentUser);
+        setIsSelf(true);
+        setEditFullName(currentUser.fullName || '');
+        setEditBio(currentUser.bio || '');
+        setEditLocation(currentUser.location || '');
       }
 
-      if (postsRes.data.success) {
-        setPosts(postsRes.data.posts || []);
+      if (postsRes.status === 'fulfilled' && postsRes.value.data.success) {
+        setPosts(postsRes.value.data.posts || []);
       }
 
-      if (friendsRes.data.success) {
-        setFriends(friendsRes.data.friends || []);
+      if (friendsRes.status === 'fulfilled' && friendsRes.value.data.success) {
+        setFriends(friendsRes.value.data.friends || []);
       }
     } catch (error) {
       console.error('Failed to load profile:', error);
-      toast.error('Could not load profile.');
+      if (currentUser && (!profileId || profileId === currentUser.id || profileId === 'me')) {
+        setProfile(currentUser);
+        setIsSelf(true);
+      } else {
+        toast.error('Could not load profile.');
+      }
     } finally {
       setLoading(false);
     }
@@ -91,7 +106,25 @@ const Profile: React.FC = () => {
 
   useEffect(() => {
     fetchProfileData();
-  }, [targetId]);
+  }, [profileId, currentUser?.id]);
+
+  const handleAvatarFileSelect = (file: File | null) => {
+    setEditProfilePic(file);
+    if (file) {
+      setPreviewProfilePic(URL.createObjectURL(file));
+    } else {
+      setPreviewProfilePic(null);
+    }
+  };
+
+  const handleCoverFileSelect = (file: File | null) => {
+    setEditCoverPic(file);
+    if (file) {
+      setPreviewCoverPic(URL.createObjectURL(file));
+    } else {
+      setPreviewCoverPic(null);
+    }
+  };
 
   const handleSendFriendRequest = async () => {
     if (!profile) return;
@@ -140,6 +173,10 @@ const Profile: React.FC = () => {
         updateUserProfileState(res.data.user);
         toast.success('Profile updated successfully!');
         setShowEditModal(false);
+        setPreviewProfilePic(null);
+        setPreviewCoverPic(null);
+        setEditProfilePic(null);
+        setEditCoverPic(null);
       }
     } catch {
       toast.error('Failed to save profile.');
@@ -393,24 +430,53 @@ const Profile: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4 pt-2">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Change Avatar</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setEditProfilePic(e.target.files?.[0] || null)}
-                    className="text-xs text-gray-500"
-                  />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                {/* Avatar Picker with Live Preview */}
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80">
+                  <label className="block text-xs font-semibold text-gray-700 mb-2">Change Avatar</label>
+                  <div className="flex items-center gap-3">
+                    <div className="w-14 h-14 rounded-2xl overflow-hidden shrink-0 bg-slate-200 border border-slate-300 flex items-center justify-center">
+                      {previewProfilePic ? (
+                        <img src={previewProfilePic} alt="Preview Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <Avatar src={profile?.profilePicture} fallback={profile?.fullName || 'User'} size="md" />
+                      )}
+                    </div>
+                    <label className="flex-1 px-3 py-2 bg-white hover:bg-slate-100 text-indigo-600 rounded-xl border border-slate-200 text-xs font-semibold text-center cursor-pointer transition">
+                      <span>{previewProfilePic ? 'Change File' : 'Browse Photo'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleAvatarFileSelect(e.target.files?.[0] || null)}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Change Cover</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setEditCoverPic(e.target.files?.[0] || null)}
-                    className="text-xs text-gray-500"
-                  />
+
+                {/* Cover Picker with Live Preview */}
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80">
+                  <label className="block text-xs font-semibold text-gray-700 mb-2">Change Cover Photo</label>
+                  <div className="flex items-center gap-3">
+                    <div className="w-20 h-14 rounded-2xl overflow-hidden shrink-0 bg-slate-200 border border-slate-300 flex items-center justify-center">
+                      {previewCoverPic ? (
+                        <img src={previewCoverPic} alt="Preview Cover" className="w-full h-full object-cover" />
+                      ) : profile?.coverPhoto ? (
+                        <img src={profile.coverPhoto} alt="Current Cover" className="w-full h-full object-cover" />
+                      ) : (
+                        <Camera className="w-5 h-5 text-gray-400" />
+                      )}
+                    </div>
+                    <label className="flex-1 px-3 py-2 bg-white hover:bg-slate-100 text-indigo-600 rounded-xl border border-slate-200 text-xs font-semibold text-center cursor-pointer transition">
+                      <span>{previewCoverPic ? 'Change File' : 'Browse Cover'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleCoverFileSelect(e.target.files?.[0] || null)}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
                 </div>
               </div>
 
@@ -418,7 +484,11 @@ const Profile: React.FC = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setShowEditModal(false)}
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setPreviewProfilePic(null);
+                    setPreviewCoverPic(null);
+                  }}
                   className="rounded-xl"
                 >
                   Cancel
@@ -426,7 +496,7 @@ const Profile: React.FC = () => {
                 <Button
                   type="submit"
                   disabled={isSavingProfile}
-                  className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center gap-2"
+                  className="rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold flex items-center gap-2 shadow-md shadow-indigo-500/20"
                 >
                   {isSavingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Changes'}
                 </Button>

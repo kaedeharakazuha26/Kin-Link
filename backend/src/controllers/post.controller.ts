@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { db } from '../config/firebase';
 import { Post, Comment } from '../types';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
-import { uploadFile } from '../utils/upload';
+import { uploadFileDetailed, deleteFileFromImageKit } from '../utils/upload';
 
 export const createPost = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
@@ -14,9 +14,12 @@ export const createPost = async (req: AuthenticatedRequest, res: Response): Prom
 
     const { content, mediaType = 'none' } = req.body;
     let mediaUrl = req.body.mediaUrl;
+    let mediaFileId: string | undefined;
 
     if (req.file) {
-      mediaUrl = await uploadFile(req.file, 'posts');
+      const uploadRes = await uploadFileDetailed(req.file, 'posts');
+      mediaUrl = uploadRes.url;
+      mediaFileId = uploadRes.fileId;
     }
 
     if (!content && !mediaUrl) {
@@ -53,6 +56,9 @@ export const createPost = async (req: AuthenticatedRequest, res: Response): Prom
 
     if (mediaUrl) {
       newPost.mediaUrl = mediaUrl;
+      if (mediaFileId) {
+        newPost.mediaFileId = mediaFileId;
+      }
     }
 
     await db.collection('posts').doc(postId).set(newPost);
@@ -89,14 +95,15 @@ export const getUserPosts = async (req: AuthenticatedRequest, res: Response): Pr
     const snapshot = await db
       .collection('posts')
       .where('authorId', '==', userId)
-      .orderBy('createdAt', 'desc')
-      .limit(50)
+      .limit(100)
       .get();
 
     const posts: Post[] = [];
     snapshot.forEach((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
       posts.push(doc.data() as Post);
     });
+
+    posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     res.json({ success: true, posts });
   } catch (error) {
@@ -238,6 +245,17 @@ export const deletePost = async (req: AuthenticatedRequest, res: Response): Prom
     if (postData.authorId !== userId) {
       res.status(403).json({ success: false, message: 'You can only delete your own posts.' });
       return;
+    }
+
+    // Delete image from ImageKit server if post contains media
+    try {
+      if (postData.mediaFileId) {
+        await deleteFileFromImageKit(postData.mediaFileId);
+      } else if (postData.mediaUrl) {
+        await deleteFileFromImageKit(postData.mediaUrl);
+      }
+    } catch (mediaErr) {
+      console.warn('Failed to delete media from ImageKit during post deletion:', mediaErr);
     }
 
     await postRef.delete();
