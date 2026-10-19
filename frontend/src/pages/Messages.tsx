@@ -5,7 +5,7 @@ import { useSocketStore } from '../store/useSocketStore';
 import { Conversation } from '../types';
 import Loading from '../components/Loading';
 import { Avatar } from '../components/ui/avatar';
-import { MessageCircle, Search } from 'lucide-react';
+import { MessageSquare, Search, Sparkles } from 'lucide-react';
 import ChatBox from './ChatBox';
 
 const Messages: React.FC = () => {
@@ -61,36 +61,41 @@ const Messages: React.FC = () => {
   if (loading) return <Loading />;
 
   return (
-    <div className="h-full flex overflow-hidden bg-white">
+    <div className="h-full flex overflow-hidden bg-[#090a10]">
       {/* Conversations List Left Column */}
-      <div className="w-full md:w-80 lg:w-96 border-r border-gray-200 flex flex-col h-full bg-white shrink-0">
-        <div className="p-4 border-b border-gray-100 space-y-3">
+      <div className="w-full md:w-80 lg:w-96 border-r border-white/[0.08] flex flex-col h-full bg-[#0d0f18] shrink-0">
+        <div className="p-4 border-b border-white/[0.08] space-y-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold text-gray-900">Chats</h1>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
+            <h1 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-indigo-400" />
+              Direct Messages
+            </h1>
+            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
               {onlineUsers.length} online
             </span>
           </div>
 
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+            <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-500" />
             <input
               type="text"
               placeholder="Search conversations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-100 border-none rounded-xl pl-9 pr-4 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full bg-[#181b2c] border border-white/10 rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition shadow-inner"
             />
           </div>
         </div>
 
         {/* List of Conversations */}
-        <div className="flex-1 overflow-y-auto no-scrollbar divide-y divide-gray-50">
+        <div className="flex-1 overflow-y-auto no-scrollbar divide-y divide-white/[0.04]">
           {filteredConversations.length === 0 ? (
-            <div className="p-8 text-center text-gray-400">
-              <MessageCircle className="w-8 h-8 mx-auto mb-2 text-indigo-300" />
-              <p className="text-sm font-semibold text-gray-700">No conversations yet</p>
-              <p className="text-xs text-gray-400 mt-1">Add friends or search people to start chatting.</p>
+            <div className="p-8 text-center text-slate-500">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto mb-3">
+                <MessageSquare className="w-6 h-6 text-indigo-400" />
+              </div>
+              <p className="text-sm font-bold text-white">No chats yet</p>
+              <p className="text-xs text-slate-400 mt-1">Visit Discover or Feed to start chatting with friends.</p>
             </div>
           ) : (
             filteredConversations.map((conv) => {
@@ -109,21 +114,28 @@ const Messages: React.FC = () => {
                     }
                   }}
                   className={`p-3.5 flex items-center gap-3 cursor-pointer transition ${
-                    isSelected ? 'bg-indigo-50/70 border-l-4 border-indigo-600' : 'hover:bg-slate-50'
+                    isSelected
+                      ? 'bg-gradient-to-r from-indigo-500/20 via-purple-500/10 to-transparent border-l-4 border-indigo-500 text-white'
+                      : 'hover:bg-white/[0.04] text-slate-300'
                   }`}
                 >
                   <div className="relative shrink-0">
-                    <Avatar src={other?.profilePicture} fallback={other?.fullName || 'User'} size="md" />
+                    <Avatar
+                      src={other?.profilePicture}
+                      fallback={other?.fullName || 'User'}
+                      size="md"
+                      className="ring-1 ring-white/10"
+                    />
                     {isOnline && (
-                      <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white" />
+                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#0d0f18]" />
                     )}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <h4 className="text-sm font-bold text-gray-900 truncate">{other?.fullName}</h4>
+                      <h4 className="text-sm font-bold text-white truncate">{other?.fullName}</h4>
                       {conv.lastMessage && (
-                        <span className="text-[10px] text-gray-400">
+                        <span className="text-[10px] text-slate-500">
                           {new Date(conv.lastMessage.createdAt).toLocaleTimeString([], {
                             hour: '2-digit',
                             minute: '2-digit',
@@ -131,7 +143,7 @@ const Messages: React.FC = () => {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 truncate">
+                    <p className="text-xs text-slate-400 truncate">
                       {conv.lastMessage?.text || 'Started a conversation'}
                     </p>
                   </div>
@@ -142,8 +154,8 @@ const Messages: React.FC = () => {
         </div>
       </div>
 
-      {/* Right Column: ChatBox Active Panel (hidden on mobile, shown on md+) */}
-      <div className="hidden md:flex flex-1 h-full flex-col">
+      {/* Right Column: ChatBox Active Panel */}
+      <div className="hidden md:flex flex-1 h-full flex-col bg-[#0a0b12]">
         {selectedConv && selectedConv.otherUser ? (
           <ChatBox
             key={selectedConv.id}
@@ -151,11 +163,13 @@ const Messages: React.FC = () => {
             targetUser={selectedConv.otherUser}
           />
         ) : (
-          <div className="h-full flex flex-col items-center justify-center p-8 text-center text-gray-400">
-            <MessageCircle className="w-12 h-12 text-indigo-300 mb-3" />
-            <h3 className="text-lg font-bold text-gray-800">Select a conversation</h3>
-            <p className="text-sm text-gray-400 mt-1 max-w-sm">
-              Pick a chat from the left sidebar or visit a friend's profile to send them a direct message.
+          <div className="h-full flex flex-col items-center justify-center p-8 text-center text-slate-500 bg-[#0a0b12]">
+            <div className="w-16 h-16 rounded-3xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4">
+              <Sparkles className="w-8 h-8 text-indigo-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white">Select a conversation</h3>
+            <p className="text-xs text-slate-400 mt-1 max-w-sm">
+              Pick a chat from the left sidebar or visit a friend's profile to start chatting.
             </p>
           </div>
         )}

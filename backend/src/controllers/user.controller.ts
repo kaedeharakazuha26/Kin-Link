@@ -111,12 +111,26 @@ export const updateProfile = async (req: AuthenticatedRequest, res: Response): P
 export const searchUsers = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const q = ((req.query.q as string) || '').toLowerCase().trim();
-    const snapshot = await db.collection('users').limit(40).get();
+    const excludeFriends = req.query.excludeFriends === 'true';
+    const currentUserId = req.user?.id;
+
+    let currentUserFriends: string[] = [];
+    if (currentUserId) {
+      const userDoc = await db.collection('users').doc(currentUserId).get();
+      if (userDoc.exists) {
+        currentUserFriends = (userDoc.data() as User).friends || [];
+      }
+    }
+
+    const snapshot = await db.collection('users').limit(50).get();
 
     const results: SafeUser[] = [];
     snapshot.forEach((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
       const u = doc.data() as User;
-      if (u.id !== req.user?.id) {
+      if (u.id !== currentUserId) {
+        if (excludeFriends && currentUserFriends.includes(u.id)) {
+          return;
+        }
         if (!q || u.fullName.toLowerCase().includes(q) || u.username.toLowerCase().includes(q)) {
           results.push(toSafeUser(u));
         }
@@ -168,7 +182,10 @@ export const sendFriendRequest = async (req: AuthenticatedRequest, res: Response
     currentSent.add(targetUserId);
     await currentUserRef.update({ friendRequestsSent: Array.from(currentSent) });
 
-    res.json({ success: true, message: 'Friend request sent.' });
+    const updatedCurrentDoc = await currentUserRef.get();
+    const updatedUser = toSafeUser(updatedCurrentDoc.data() as User);
+
+    res.json({ success: true, message: 'Friend request sent.', user: updatedUser });
   } catch (error) {
     console.error('Send friend request error:', error);
     res.status(500).json({ success: false, message: 'Failed to send request.' });
@@ -218,7 +235,10 @@ export const acceptFriendRequest = async (req: AuthenticatedRequest, res: Respon
       friendRequestsSent: requesterSent,
     });
 
-    res.json({ success: true, message: 'Friend request accepted.' });
+    const updatedCurrentDoc = await currentUserRef.get();
+    const updatedUser = toSafeUser(updatedCurrentDoc.data() as User);
+
+    res.json({ success: true, message: 'Friend request accepted.', user: updatedUser });
   } catch (error) {
     console.error('Accept friend request error:', error);
     res.status(500).json({ success: false, message: 'Failed to accept friend request.' });
@@ -252,7 +272,10 @@ export const rejectFriendRequest = async (req: AuthenticatedRequest, res: Respon
       await requesterRef.update({ friendRequestsSent: requesterSent });
     }
 
-    res.json({ success: true, message: 'Friend request declined.' });
+    const updatedCurrentDoc = await currentUserRef.get();
+    const updatedUser = toSafeUser(updatedCurrentDoc.data() as User);
+
+    res.json({ success: true, message: 'Friend request declined.', user: updatedUser });
   } catch (error) {
     console.error('Reject friend request error:', error);
     res.status(500).json({ success: false, message: 'Failed to reject friend request.' });
@@ -286,7 +309,10 @@ export const removeFriend = async (req: AuthenticatedRequest, res: Response): Pr
       await friendRef.update({ friends: friendFriends });
     }
 
-    res.json({ success: true, message: 'Friend removed.' });
+    const updatedCurrentDoc = await currentUserRef.get();
+    const updatedUser = toSafeUser(updatedCurrentDoc.data() as User);
+
+    res.json({ success: true, message: 'Friend removed.', user: updatedUser });
   } catch (error) {
     console.error('Remove friend error:', error);
     res.status(500).json({ success: false, message: 'Failed to remove friend.' });

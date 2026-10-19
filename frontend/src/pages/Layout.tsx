@@ -39,14 +39,14 @@ const Layout: React.FC = () => {
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* Main Content Viewport */}
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#f4f6fa]">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#090a10]">
         {/* Sleek Frosted Top Navbar */}
-        <header className="h-16 bg-white/90 backdrop-blur-xl border-b border-slate-200/80 px-4 sm:px-8 flex items-center justify-between shrink-0 z-20 shadow-xs">
+        <header className="h-16 bg-[#0d0f18]/90 backdrop-blur-xl border-b border-white/[0.08] px-4 sm:px-8 flex items-center justify-between shrink-0 z-20 shadow-xl">
           <div className="flex items-center gap-3 flex-1 max-w-lg">
             {/* Mobile menu trigger */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 -ml-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 sm:hidden transition cursor-pointer"
+              className="p-2 -ml-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 sm:hidden transition cursor-pointer"
               aria-label="Toggle navigation"
             >
               {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -55,13 +55,13 @@ const Layout: React.FC = () => {
             {/* Omni Search Box */}
             <div
               onClick={() => navigate('/discover')}
-              className="flex items-center gap-2.5 px-3.5 py-2 bg-slate-100/90 hover:bg-slate-200/80 rounded-2xl w-full max-w-sm text-slate-500 transition-all duration-150 cursor-pointer border border-transparent hover:border-slate-300/60"
+              className="flex items-center gap-2.5 px-3.5 py-2 bg-[#161828] hover:bg-[#1c1f33] rounded-2xl w-full max-w-sm text-slate-300 transition-all duration-150 cursor-pointer border border-white/10 hover:border-indigo-500/40"
             >
-              <Search className="w-4 h-4 text-indigo-500 shrink-0" />
-              <span className="text-xs sm:text-sm font-medium text-slate-500 truncate">
+              <Search className="w-4 h-4 text-indigo-400 shrink-0" />
+              <span className="text-xs sm:text-sm font-medium text-slate-400 truncate">
                 Search friends, stories, posts...
               </span>
-              <kbd className="hidden md:inline-flex ml-auto text-[10px] font-semibold text-slate-400 bg-white px-2 py-0.5 rounded-lg border border-slate-200 shadow-2xs">
+              <kbd className="hidden md:inline-flex ml-auto text-[10px] font-semibold text-slate-300 bg-white/10 px-2 py-0.5 rounded-lg border border-white/10 shadow-2xs">
                 ⌘K
               </kbd>
             </div>
@@ -71,7 +71,7 @@ const Layout: React.FC = () => {
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => navigate('/messages')}
-              className="p-2.5 rounded-xl text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/80 transition relative cursor-pointer"
+              className="p-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition relative cursor-pointer"
               title="Messages"
             >
               <MessageSquare className="w-5 h-5" />
@@ -79,7 +79,7 @@ const Layout: React.FC = () => {
 
             <button
               onClick={() => navigate('/friends')}
-              className="p-2.5 rounded-xl text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/80 transition relative cursor-pointer"
+              className="p-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition relative cursor-pointer"
               title="Notifications & Requests"
             >
               <Bell className="w-5 h-5" />
@@ -93,7 +93,7 @@ const Layout: React.FC = () => {
             {user && (
               <div
                 onClick={() => navigate('/profile')}
-                className="flex items-center gap-2.5 pl-2 sm:pl-3 border-l border-slate-200/80 cursor-pointer group"
+                className="flex items-center gap-2.5 pl-2 sm:pl-3 border-l border-white/[0.08] cursor-pointer group"
                 title="View Profile"
               >
                 <div className="relative">
@@ -101,12 +101,12 @@ const Layout: React.FC = () => {
                     src={user.profilePicture}
                     fallback={user.fullName}
                     size="sm"
-                    className="ring-2 ring-indigo-500/20 group-hover:ring-indigo-500 transition"
+                    className="ring-2 ring-indigo-500/30 group-hover:ring-indigo-400 transition"
                   />
-                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#0d0f18]" />
                 </div>
                 <div className="hidden lg:block text-left">
-                  <p className="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition truncate max-w-[100px]">
+                  <p className="text-xs font-bold text-white group-hover:text-indigo-300 transition truncate max-w-[100px]">
                     {user.fullName.split(' ')[0]}
                   </p>
                   <p className="text-[10px] text-slate-400 truncate">Online</p>

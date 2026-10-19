@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import { api } from '../services/api';
 import { Avatar } from './ui/avatar';
 import { Heart, MessageSquare, Share2, Trash2, Send, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 interface PostCardProps {
@@ -13,6 +14,8 @@ interface PostCardProps {
 
 const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
   const { user } = useAuthStore();
+  const navigate = useNavigate();
+
   const [likes, setLikes] = useState<string[]>(post.likes || []);
   const [isLiked, setIsLiked] = useState<boolean>(post.likes?.includes(user?.id || '') || false);
   const [isLiking, setIsLiking] = useState(false);
@@ -48,7 +51,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
     if (isLiking || !user) return;
     setIsLiking(true);
 
-    // Optimistic update
     const nextLiked = !isLiked;
     setIsLiked(nextLiked);
     setLikes((prev) => (nextLiked ? [...prev, user.id] : prev.filter((id) => id !== user.id)));
@@ -59,8 +61,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
         setIsLiked(res.data.liked);
         setLikes(res.data.likes);
       }
-    } catch (error) {
-      // Revert optimistic update
+    } catch {
       setIsLiked(!nextLiked);
       setLikes((prev) => (!nextLiked ? [...prev, user.id] : prev.filter((id) => id !== user.id)));
       toast.error('Failed to update like');
@@ -77,10 +78,10 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
       try {
         const res = await api.get(`/posts/${post.id}/comments`);
         if (res.data.success) {
-          setComments(res.data.comments);
+          setComments(res.data.comments || []);
         }
-      } catch (err) {
-        toast.error('Failed to load comments');
+      } catch {
+        toast.error('Could not load comments');
       } finally {
         setIsLoadingComments(false);
       }
@@ -89,17 +90,18 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
 
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || isSubmittingComment || !user) return;
+    if (!newComment.trim() || isSubmittingComment) return;
 
     setIsSubmittingComment(true);
     try {
-      const res = await api.post(`/posts/${post.id}/comments`, { content: newComment });
+      const res = await api.post(`/posts/${post.id}/comments`, { content: newComment.trim() });
       if (res.data.success && res.data.comment) {
         setComments((prev) => [...prev, res.data.comment]);
-        setCommentsCount((prev) => prev + 1);
         setNewComment('');
+        setCommentsCount((prev) => prev + 1);
+        toast.success('Comment added!');
       }
-    } catch (err) {
+    } catch {
       toast.error('Failed to post comment');
     } finally {
       setIsSubmittingComment(false);
@@ -111,7 +113,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
       const res = await api.post(`/posts/${post.id}/share`);
       if (res.data.success) {
         setSharesCount(res.data.sharesCount);
-        toast.success('Post shared to your feed!');
+        toast.success('Post link shared!');
       }
     } catch {
       toast.error('Failed to share post');
@@ -134,16 +136,24 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
   const isAuthor = user?.id === post.authorId;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200/80 overflow-hidden transition hover:shadow-md">
+    <div className="bg-[#11131f] rounded-3xl shadow-xl border border-white/[0.08] overflow-hidden transition text-white">
       {/* Post Header */}
       <div className="p-4 sm:p-5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Avatar src={post.authorProfilePicture} fallback={post.authorName} size="md" />
+        <div
+          onClick={() => navigate(`/profile/${post.authorId}`)}
+          className="flex items-center gap-3 cursor-pointer group"
+        >
+          <Avatar
+            src={post.authorProfilePicture}
+            fallback={post.authorName}
+            size="md"
+            className="ring-1 ring-white/10 group-hover:ring-indigo-500/40 transition"
+          />
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 hover:underline cursor-pointer">
+            <h3 className="text-sm font-bold text-white group-hover:text-indigo-300 transition">
               {post.authorName}
             </h3>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-slate-400">
               @{post.authorUsername} • {formatTime(post.createdAt)}
             </p>
           </div>
@@ -153,7 +163,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
           <button
             onClick={handleDelete}
             disabled={isDeleting}
-            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+            className="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition cursor-pointer"
             title="Delete post"
           >
             {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
@@ -163,30 +173,31 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
 
       {/* Content Text */}
       {post.content && (
-        <div className="px-5 pb-3 text-sm sm:text-base text-gray-800 leading-relaxed whitespace-pre-wrap">
+        <div className="px-5 pb-3 text-sm sm:text-base text-slate-200 leading-relaxed whitespace-pre-wrap">
           {post.content}
         </div>
       )}
 
       {/* Post Media (Image / Video) */}
       {post.mediaUrl && (
-        <div className="w-full bg-black/5 max-h-[500px] overflow-hidden flex items-center justify-center">
+        <div className="w-full bg-[#0a0b12] max-h-[520px] overflow-hidden flex items-center justify-center border-y border-white/[0.06]">
           {post.mediaType === 'video' ? (
-            <video src={post.mediaUrl} controls className="w-full max-h-[500px] object-contain" />
+            <video src={post.mediaUrl} controls className="w-full max-h-[520px] object-contain" />
           ) : (
             <img
               src={post.mediaUrl}
               alt="Post attachment"
-              className="w-full max-h-[500px] object-cover hover:scale-[1.01] transition duration-300"
+              className="w-full max-h-[520px] object-cover hover:scale-[1.01] transition duration-300 cursor-pointer"
+              onClick={() => window.open(post.mediaUrl, '_blank')}
             />
           )}
         </div>
       )}
 
       {/* Engagement Stats Bar */}
-      <div className="px-5 py-2.5 flex items-center justify-between text-xs text-gray-500 border-b border-gray-100">
+      <div className="px-5 py-2.5 flex items-center justify-between text-xs text-slate-400 border-b border-white/[0.06]">
         <div className="flex items-center gap-1.5">
-          <span className="p-1 rounded-full bg-red-500 text-white flex items-center justify-center shadow-xs">
+          <span className="p-1 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-xs">
             <Heart className="w-2.5 h-2.5 fill-current" />
           </span>
           <span>{likes.length} {likes.length === 1 ? 'like' : 'likes'}</span>
@@ -198,11 +209,11 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
       </div>
 
       {/* Action Buttons (Like, Comment, Share) */}
-      <div className="px-3 py-1 flex items-center justify-between text-gray-600 border-b border-gray-100">
+      <div className="px-3 py-1 flex items-center justify-between text-slate-300 border-b border-white/[0.06]">
         <button
           onClick={handleToggleLike}
-          className={`flex-1 py-2 flex items-center justify-center gap-2 rounded-xl text-sm font-medium transition cursor-pointer ${
-            isLiked ? 'text-red-600 bg-red-50 font-semibold' : 'hover:bg-gray-50'
+          className={`flex-1 py-2 flex items-center justify-center gap-2 rounded-2xl text-xs sm:text-sm font-semibold transition cursor-pointer ${
+            isLiked ? 'text-rose-400 bg-rose-500/10' : 'hover:bg-white/[0.05] hover:text-white'
           }`}
         >
           <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
@@ -211,7 +222,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
 
         <button
           onClick={handleToggleComments}
-          className="flex-1 py-2 flex items-center justify-center gap-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition cursor-pointer"
+          className="flex-1 py-2 flex items-center justify-center gap-2 rounded-2xl text-xs sm:text-sm font-semibold hover:bg-white/[0.05] hover:text-white transition cursor-pointer"
         >
           <MessageSquare className="w-4 h-4" />
           <span>Comment</span>
@@ -219,7 +230,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
 
         <button
           onClick={handleShare}
-          className="flex-1 py-2 flex items-center justify-center gap-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition cursor-pointer"
+          className="flex-1 py-2 flex items-center justify-center gap-2 rounded-2xl text-xs sm:text-sm font-semibold hover:bg-white/[0.05] hover:text-white transition cursor-pointer"
         >
           <Share2 className="w-4 h-4" />
           <span>Share</span>
@@ -228,22 +239,22 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
 
       {/* Expandable Comments Section */}
       {showComments && (
-        <div className="p-4 sm:p-5 bg-slate-50/70 space-y-4">
+        <div className="p-4 sm:p-5 bg-[#0c0d16] space-y-4 border-t border-white/[0.06]">
           {/* New Comment Input */}
           <form onSubmit={handleAddComment} className="flex gap-2.5 items-center">
-            <Avatar src={user?.profilePicture} fallback={user?.fullName} size="sm" />
+            <Avatar src={user?.profilePicture} fallback={user?.fullName || 'User'} size="sm" className="ring-1 ring-white/10" />
             <div className="flex-1 relative flex items-center">
               <input
                 type="text"
                 placeholder="Write a comment..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                className="w-full bg-white border border-gray-200 rounded-full px-4 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full bg-[#181b2c] border border-white/10 rounded-full px-4 py-2 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition shadow-inner"
               />
               <button
                 type="submit"
                 disabled={!newComment.trim() || isSubmittingComment}
-                className="absolute right-2 p-1.5 text-indigo-600 disabled:text-gray-300 hover:bg-indigo-50 rounded-full transition"
+                className="absolute right-2 p-1.5 text-indigo-400 disabled:text-slate-600 hover:text-white rounded-full transition cursor-pointer"
               >
                 {isSubmittingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </button>
@@ -253,21 +264,21 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
           {/* Comments List */}
           {isLoadingComments ? (
             <div className="py-4 flex justify-center">
-              <Loader2 className="w-5 h-5 animate-spin text-indigo-500" />
+              <Loader2 className="w-5 h-5 animate-spin text-indigo-400" />
             </div>
           ) : comments.length === 0 ? (
-            <p className="text-xs text-center text-gray-400 py-2">No comments yet. Be the first to comment!</p>
+            <p className="text-xs text-center text-slate-500 py-2">No comments yet. Be the first to comment!</p>
           ) : (
             <div className="space-y-3 pt-2">
               {comments.map((comment) => (
                 <div key={comment.id} className="flex gap-2.5 items-start">
-                  <Avatar src={comment.authorProfilePicture} fallback={comment.authorName} size="sm" />
-                  <div className="bg-white border border-gray-200/80 rounded-2xl px-3.5 py-2 max-w-[85%] shadow-2xs">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-gray-900">{comment.authorName}</span>
-                      <span className="text-[10px] text-gray-400">{formatTime(comment.createdAt)}</span>
+                  <Avatar src={comment.authorProfilePicture} fallback={comment.authorName} size="sm" className="ring-1 ring-white/10 mt-0.5" />
+                  <div className="bg-[#161828] border border-white/[0.06] rounded-2xl px-3.5 py-2.5 max-w-[85%] shadow-sm">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-xs font-bold text-white">{comment.authorName}</span>
+                      <span className="text-[10px] text-slate-500">{formatTime(comment.createdAt)}</span>
                     </div>
-                    <p className="text-xs sm:text-sm text-gray-800 mt-0.5 whitespace-pre-wrap">{comment.content}</p>
+                    <p className="text-xs sm:text-sm text-slate-200 whitespace-pre-wrap">{comment.content}</p>
                   </div>
                 </div>
               ))}

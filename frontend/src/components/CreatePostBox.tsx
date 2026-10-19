@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
 import { Avatar } from './ui/avatar';
-import { Image, Video, Smile, X, Loader2 } from 'lucide-react';
+import { Image, Video, Smile, X, Loader2, Send } from 'lucide-react';
 import { api } from '../services/api';
 import toast from 'react-hot-toast';
 import { Post } from '../types';
@@ -73,9 +73,9 @@ const CreatePostBox: React.FC<CreatePostBoxProps> = ({ onPostCreated }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-4 sm:p-5 transition">
-      <div className="flex gap-3">
-        <Avatar src={user?.profilePicture} fallback={user?.fullName} size="md" />
+    <div className="bg-[#11131f] rounded-3xl shadow-xl border border-white/[0.08] p-4 sm:p-5 transition text-white">
+      <div className="flex gap-3.5">
+        <Avatar src={user?.profilePicture} fallback={user?.fullName || 'User'} size="md" className="ring-1 ring-white/10 shrink-0" />
         <div className="flex-1">
           <textarea
             placeholder={`What's on your mind, ${user?.fullName ? user.fullName.split(' ')[0] : 'friend'}?`}
@@ -83,30 +83,30 @@ const CreatePostBox: React.FC<CreatePostBoxProps> = ({ onPostCreated }) => {
             onClick={() => setIsExpanded(true)}
             onChange={(e) => setContent(e.target.value)}
             rows={isExpanded ? 3 : 1}
-            className="w-full bg-slate-50 border border-gray-200/80 rounded-xl px-4 py-2.5 text-sm sm:text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none transition-all"
+            className="w-full bg-[#181b2c] border border-white/10 rounded-2xl px-4 py-3 text-sm sm:text-base text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 resize-none transition shadow-inner"
           />
         </div>
       </div>
 
       {/* Media Preview Box */}
       {mediaPreview && (
-        <div className="relative mt-3 rounded-xl overflow-hidden border border-gray-200 bg-black/5 max-h-72 flex items-center justify-center">
+        <div className="relative mt-3.5 rounded-2xl overflow-hidden border border-white/10 bg-[#0a0b12] max-h-80 flex items-center justify-center">
           <button
             onClick={removeMedia}
-            className="absolute top-2 right-2 p-1.5 bg-black/70 text-white rounded-full hover:bg-black transition cursor-pointer z-10"
+            className="absolute top-3 right-3 p-1.5 bg-black/80 text-white rounded-full hover:bg-black transition cursor-pointer z-10 border border-white/10 shadow-lg"
           >
             <X className="w-4 h-4" />
           </button>
           {mediaFile?.type.startsWith('video') ? (
-            <video src={mediaPreview} controls className="max-h-72 object-contain" />
+            <video src={mediaPreview} controls className="max-h-80 object-contain rounded-2xl" />
           ) : (
-            <img src={mediaPreview} alt="Upload preview" className="max-h-72 object-contain" />
+            <img src={mediaPreview} alt="Upload preview" className="max-h-80 object-contain rounded-2xl" />
           )}
         </div>
       )}
 
       {/* Action Footer */}
-      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+      <div className="mt-3.5 pt-3.5 border-t border-white/[0.06] flex items-center justify-between">
         <div className="flex items-center gap-1 sm:gap-2">
           <input
             type="file"
@@ -119,10 +119,10 @@ const CreatePostBox: React.FC<CreatePostBoxProps> = ({ onPostCreated }) => {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-emerald-600 hover:bg-emerald-50 transition cursor-pointer"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-emerald-400 hover:bg-emerald-500/10 transition cursor-pointer"
           >
             <Image className="w-4 h-4" />
-            <span>Photo/Video</span>
+            <span>Photo / Video</span>
           </button>
 
           <button
@@ -131,7 +131,7 @@ const CreatePostBox: React.FC<CreatePostBoxProps> = ({ onPostCreated }) => {
               setContent((prev) => prev + ' 😊');
               setIsExpanded(true);
             }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-amber-600 hover:bg-amber-50 transition cursor-pointer"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-amber-400 hover:bg-amber-500/10 transition cursor-pointer"
           >
             <Smile className="w-4 h-4" />
             <span>Feeling</span>
@@ -139,33 +139,23 @@ const CreatePostBox: React.FC<CreatePostBoxProps> = ({ onPostCreated }) => {
         </div>
 
         {isExpanded && (
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setIsExpanded(false);
-                removeMedia();
-              }}
-              className="px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100 rounded-lg transition cursor-pointer"
-            >
-              Cancel
-            </button>
-
-            <button
-              onClick={handleSubmit}
-              disabled={isSubmitting || (!content.trim() && !mediaFile)}
-              className="px-5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50 text-white font-medium text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5 cursor-pointer"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Posting...
-                </>
-              ) : (
-                'Post'
-              )}
-            </button>
-          </div>
+          <button
+            onClick={handleSubmit}
+            disabled={(!content.trim() && !mediaFile) || isSubmitting}
+            className="px-5 py-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:brightness-110 disabled:opacity-40 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-indigo-600/30 transition flex items-center gap-1.5 cursor-pointer"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Posting...</span>
+              </>
+            ) : (
+              <>
+                <Send className="w-4 h-4" />
+                <span>Post</span>
+              </>
+            )}
+          </button>
         )}
       </div>
     </div>

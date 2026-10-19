@@ -75,23 +75,23 @@ const StoriesBar: React.FC = () => {
         {/* Create Story / My Day Card */}
         <div
           onClick={() => setShowModal(true)}
-          className="relative min-w-[110px] w-[110px] h-[175px] rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition duration-200 group border border-gray-200/80 bg-white shrink-0 flex flex-col justify-between"
+          className="relative min-w-[110px] w-[110px] h-[175px] rounded-3xl overflow-hidden cursor-pointer shadow-xl hover:shadow-2xl transition duration-200 group border border-white/[0.08] bg-[#11131f] shrink-0 flex flex-col justify-between"
         >
-          <div className="h-[120px] w-full overflow-hidden bg-slate-100 relative">
+          <div className="h-[120px] w-full overflow-hidden bg-[#181b2c] relative">
             <img
               src={user?.profilePicture}
               alt="Profile"
-              className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+              className="w-full h-full object-cover group-hover:scale-105 transition duration-300 opacity-90 group-hover:opacity-100"
             />
-            <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition" />
+            <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition" />
           </div>
 
-          <div className="absolute top-[102px] left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center ring-4 ring-white shadow-md group-hover:bg-indigo-700 transition">
-            <Plus className="w-5 h-5" />
+          <div className="absolute top-[102px] left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex items-center justify-center ring-4 ring-[#11131f] shadow-lg group-hover:brightness-110 transition">
+            <Plus className="w-4 h-4 stroke-[3]" />
           </div>
 
-          <div className="h-[55px] pt-3 flex items-center justify-center bg-white px-2">
-            <span className="text-[11px] font-bold text-gray-800 text-center leading-tight">
+          <div className="h-[55px] pt-3 flex items-center justify-center bg-[#11131f] px-2 border-t border-white/[0.04]">
+            <span className="text-[11px] font-bold text-white text-center leading-tight">
               Create Story
             </span>
           </div>
