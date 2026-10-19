@@ -1,0 +1,266 @@
+import { Response } from 'express';
+import { db } from '../config/firebase';
+import { Post, Comment } from '../types';
+import { AuthenticatedRequest } from '../middleware/auth.middleware';
+import { uploadFileToFirebase } from '../utils/upload';
+
+export const createPost = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const user = req.user;
+    if (!user) {
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+
+    const { content, mediaType = 'none' } = req.body;
+    let mediaUrl = req.body.mediaUrl;
+
+    if (req.file) {
+      mediaUrl = await uploadFileToFirebase(req.file, 'posts');
+    }
+
+    if (!content && !mediaUrl) {
+      res.status(400).json({ success: false, message: 'Post content or media is required.' });
+      return;
+    }
+
+    const postId = db.collection('posts').doc().id;
+    const now = new Date().toISOString();
+
+    let detectedMediaType: 'image' | 'video' | 'none' = mediaType;
+    if (mediaUrl) {
+      if (req.file?.mimetype.startsWith('video') || mediaUrl.includes('.mp4') || mediaUrl.includes('video')) {
+        detectedMediaType = 'video';
+      } else {
+        detectedMediaType = 'image';
+      }
+    }
+
+    const newPost: Post = {
+      id: postId,
+      authorId: user.id,
+      authorName: user.fullName,
+      authorUsername: user.username,
+      authorProfilePicture: user.profilePicture,
+      content: content ? content.trim() : '',
+      mediaUrl: mediaUrl || undefined,
+      mediaType: detectedMediaType,
+      likes: [],
+      commentsCount: 0,
+      sharesCount: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await db.collection('posts').doc(postId).set(newPost);
+
+    res.status(201).json({ success: true, message: 'Post created successfully.', post: newPost });
+  } catch (error) {
+    console.error('Create post error:', error);
+    res.status(500).json({ success: false, message: 'Failed to create post.' });
+  }
+};
+
+export const getFeedPosts = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const snapshot = await db.collection('posts').orderBy('createdAt', 'desc').limit(50).get();
+    const posts: Post[] = [];
+
+    snapshot.forEach((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
+      posts.push(doc.data() as Post);
+    });
+
+    res.json({ success: true, posts });
+  } catch (error) {
+    console.error('Get feed posts error:', error);
+    res.status(500).json({ success: false, message: 'Failed to retrieve posts.' });
+  }
+};
+
+export const getUserPosts = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = String(req.params.userId);
+    const snapshot = await db
+      .collection('posts')
+      .where('authorId', '==', userId)
+      .orderBy('createdAt', 'desc')
+      .limit(50)
+      .get();
+
+    const posts: Post[] = [];
+    snapshot.forEach((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
+      posts.push(doc.data() as Post);
+    });
+
+    res.json({ success: true, posts });
+  } catch (error) {
+    console.error('Get user posts error:', error);
+    res.status(500).json({ success: false, message: 'Failed to retrieve user posts.' });
+  }
+};
+
+export const toggleLikePost = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const postId = String(req.params.postId);
+    const userId = req.user?.id;
+
+    if (!userId) {
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+
+    const postRef = db.collection('posts').doc(postId);
+    const postDoc = await postRef.get();
+
+    if (!postDoc.exists) {
+      res.status(404).json({ success: false, message: 'Post not found.' });
+      return;
+    }
+
+    const postData = postDoc.data() as Post;
+    const likes = postData.likes || [];
+    const hasLiked = likes.includes(userId);
+
+    const updatedLikes = hasLiked ? likes.filter((id) => id !== userId) : [...likes, userId];
+
+    await postRef.update({
+      likes: updatedLikes,
+      updatedAt: new Date().toISOString(),
+    });
+
+    res.json({
+      success: true,
+      liked: !hasLiked,
+      likesCount: updatedLikes.length,
+      likes: updatedLikes,
+    });
+  } catch (error) {
+    console.error('Like post error:', error);
+    res.status(500).json({ success: false, message: 'Failed to toggle like.' });
+  }
+};
+
+export const addComment = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const postId = String(req.params.postId);
+    const { content } = req.body;
+    const user = req.user;
+
+    if (!user) {
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+
+    if (!content || !content.trim()) {
+      res.status(400).json({ success: false, message: 'Comment content cannot be empty.' });
+      return;
+    }
+
+    const postRef = db.collection('posts').doc(postId);
+    const postDoc = await postRef.get();
+
+    if (!postDoc.exists) {
+      res.status(404).json({ success: false, message: 'Post not found.' });
+      return;
+    }
+
+    const commentId = db.collection('posts').doc(postId).collection('comments').doc().id;
+    const now = new Date().toISOString();
+
+    const newComment: Comment = {
+      id: commentId,
+      postId,
+      authorId: user.id,
+      authorName: user.fullName,
+      authorUsername: user.username,
+      authorProfilePicture: user.profilePicture,
+      content: content.trim(),
+      createdAt: now,
+    };
+
+    await db.collection('posts').doc(postId).collection('comments').doc(commentId).set(newComment);
+
+    const postData = postDoc.data() as Post;
+    const currentCommentsCount = postData.commentsCount || 0;
+    await postRef.update({
+      commentsCount: currentCommentsCount + 1,
+    });
+
+    res.status(201).json({ success: true, comment: newComment });
+  } catch (error) {
+    console.error('Add comment error:', error);
+    res.status(500).json({ success: false, message: 'Failed to add comment.' });
+  }
+};
+
+export const getComments = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const postId = String(req.params.postId);
+    const snapshot = await db
+      .collection('posts')
+      .doc(postId)
+      .collection('comments')
+      .orderBy('createdAt', 'asc')
+      .get();
+
+    const comments: Comment[] = [];
+    snapshot.forEach((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
+      comments.push(doc.data() as Comment);
+    });
+
+    res.json({ success: true, comments });
+  } catch (error) {
+    console.error('Get comments error:', error);
+    res.status(500).json({ success: false, message: 'Failed to retrieve comments.' });
+  }
+};
+
+export const deletePost = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const postId = String(req.params.postId);
+    const userId = req.user?.id;
+
+    const postRef = db.collection('posts').doc(postId);
+    const postDoc = await postRef.get();
+
+    if (!postDoc.exists) {
+      res.status(404).json({ success: false, message: 'Post not found.' });
+      return;
+    }
+
+    const postData = postDoc.data() as Post;
+    if (postData.authorId !== userId) {
+      res.status(403).json({ success: false, message: 'You can only delete your own posts.' });
+      return;
+    }
+
+    await postRef.delete();
+    res.json({ success: true, message: 'Post deleted successfully.' });
+  } catch (error) {
+    console.error('Delete post error:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete post.' });
+  }
+};
+
+export const sharePost = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const postId = String(req.params.postId);
+    const postRef = db.collection('posts').doc(postId);
+    const postDoc = await postRef.get();
+
+    if (!postDoc.exists) {
+      res.status(404).json({ success: false, message: 'Post not found.' });
+      return;
+    }
+
+    const postData = postDoc.data() as Post;
+    const updatedShares = (postData.sharesCount || 0) + 1;
+
+    await postRef.update({ sharesCount: updatedShares });
+
+    res.json({ success: true, sharesCount: updatedShares });
+  } catch (error) {
+    console.error('Share post error:', error);
+    res.status(500).json({ success: false, message: 'Failed to share post.' });
+  }
+};
