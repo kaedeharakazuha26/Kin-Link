@@ -30,8 +30,8 @@
 
 ### Backend (`/backend`)
 - **Runtime**: Node.js + Express + TypeScript
-- **Database**: Firebase Admin SDK (Cloud Firestore)
-- **File Storage**: Firebase Storage (with base64 fallback)
+- **Database**: Cloud Firestore (Firebase Admin SDK)
+- **Media CDN & Storage**: ImageKit (Real-time image & video optimization, CDN delivery)
 - **Authentication**: JWT (`jsonwebtoken`) + `bcryptjs` (Access + Refresh tokens)
 - **WebSockets**: Socket.io (real-time chat, typing indicators, user presence)
 - **File Uploads**: Multer memory storage
@@ -83,7 +83,8 @@ Kin-Link/
 ### Prerequisites
 - [Node.js](https://nodejs.org/) (v18 or higher; v24 recommended)
 - [npm](https://www.npmjs.com/) (v9 or higher)
-- A [Firebase Project](https://console.firebase.google.com/) with Firestore and Firebase Storage enabled.
+- A [Firebase Project](https://console.firebase.google.com/) with **Cloud Firestore** enabled.
+- A free [ImageKit](https://imagekit.io/) account for media uploads and CDN optimization.
 
 ---
 
@@ -104,13 +105,24 @@ Kin-Link/
    cp .env.example .env
    ```
 
-4. **Configure Firebase Admin**:
+4. **Configure Firebase Firestore (Database)**:
    - Go to your [Firebase Console](https://console.firebase.google.com/) -> **Project Settings** -> **Service accounts**.
    - Click **Generate new private key** and download the JSON file.
    - Place this file inside `/backend` and name it `serviceAccountKey.json`.
    - *(Alternatively, you can paste `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, and `FIREBASE_PRIVATE_KEY` directly inside `/backend/.env`)*.
 
-5. Start the backend development server:
+5. **Configure ImageKit (Media Storage)**:
+   - Log into your [ImageKit.io Dashboard](https://imagekit.io/dashboard).
+   - Go to **Developer Options** (in the left navigation).
+   - Copy your **Public Key**, **Private Key**, and **URL Endpoint**.
+   - Paste them into `/backend/.env`:
+     ```env
+     IMAGEKIT_PUBLIC_KEY=your_public_key
+     IMAGEKIT_PRIVATE_KEY=your_private_key
+     IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_id
+     ```
+
+6. Start the backend development server:
    ```bash
    npm run dev
    ```

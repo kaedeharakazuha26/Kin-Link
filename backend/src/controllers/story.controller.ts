@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { db } from '../config/firebase';
 import { Story } from '../types';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
-import { uploadFileToFirebase } from '../utils/upload';
+import { uploadFile } from '../utils/upload';
 
 export const createStory = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
@@ -16,7 +16,7 @@ export const createStory = async (req: AuthenticatedRequest, res: Response): Pro
     let mediaUrl = req.body.mediaUrl;
 
     if (req.file) {
-      mediaUrl = await uploadFileToFirebase(req.file, 'stories');
+      mediaUrl = await uploadFile(req.file, 'stories');
     }
 
     const storyId = db.collection('stories').doc().id;

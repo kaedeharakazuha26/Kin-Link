@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { db } from '../config/firebase';
 import { Message, Conversation, User, SafeUser } from '../types';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
-import { uploadFileToFirebase } from '../utils/upload';
+import { uploadFile } from '../utils/upload';
 
 const toSafeUser = (u: User): SafeUser => {
   const { passwordHash, refreshTokens, ...safe } = u;
@@ -168,7 +168,7 @@ export const sendMessage = async (req: AuthenticatedRequest, res: Response): Pro
     }
 
     if (req.file) {
-      mediaUrl = await uploadFileToFirebase(req.file, 'chat');
+      mediaUrl = await uploadFile(req.file, 'chat');
     }
 
     if (!text && !mediaUrl) {

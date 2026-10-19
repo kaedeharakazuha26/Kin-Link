@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { db } from '../config/firebase';
 import { Post, Comment } from '../types';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
-import { uploadFileToFirebase } from '../utils/upload';
+import { uploadFile } from '../utils/upload';
 
 export const createPost = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
@@ -16,7 +16,7 @@ export const createPost = async (req: AuthenticatedRequest, res: Response): Prom
     let mediaUrl = req.body.mediaUrl;
 
     if (req.file) {
-      mediaUrl = await uploadFileToFirebase(req.file, 'posts');
+      mediaUrl = await uploadFile(req.file, 'posts');
     }
 
     if (!content && !mediaUrl) {

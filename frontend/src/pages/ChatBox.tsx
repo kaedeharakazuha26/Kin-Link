@@ -17,6 +17,7 @@ import {
   Video,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Loading from '../components/Loading';
 
 interface ChatBoxProps {
   conversationId?: string;
@@ -285,11 +286,10 @@ const ChatBox: React.FC<ChatBoxProps> = ({ conversationId: propConvId, targetUse
                     {/* Text bubble */}
                     {msg.text && (
                       <div
-                        className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                          isMe
+                        className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${isMe
                             ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-br-xs shadow-xs'
                             : 'bg-white text-gray-800 border border-gray-200/80 rounded-bl-xs shadow-2xs'
-                        }`}
+                          }`}
                       >
                         {msg.text}
                       </div>

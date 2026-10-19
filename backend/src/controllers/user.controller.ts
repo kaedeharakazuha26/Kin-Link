@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { db } from '../config/firebase';
 import { User, SafeUser } from '../types';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
-import { uploadFileToFirebase } from '../utils/upload';
+import { uploadFile } from '../utils/upload';
 
 const toSafeUser = (u: User): SafeUser => {
   const { passwordHash, refreshTokens, ...safe } = u;
@@ -58,10 +58,10 @@ export const updateProfile = async (req: AuthenticatedRequest, res: Response): P
     const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
 
     if (files?.profilePicture?.[0]) {
-      profilePicture = await uploadFileToFirebase(files.profilePicture[0], 'profiles');
+      profilePicture = await uploadFile(files.profilePicture[0], 'profiles');
     }
     if (files?.coverPhoto?.[0]) {
-      coverPhoto = await uploadFileToFirebase(files.coverPhoto[0], 'profiles');
+      coverPhoto = await uploadFile(files.coverPhoto[0], 'profiles');
     }
 
     const updates: Partial<User> = {
