@@ -26,21 +26,30 @@ const Feed: React.FC = () => {
   const navigate = useNavigate();
 
   const [posts, setPosts] = useState<Post[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [suggestedFriends, setSuggestedFriends] = useState<User[]>([]);
   const [pendingRequests, setPendingRequests] = useState<User[]>([]);
   const [friendsList, setFriendsList] = useState<User[]>([]);
 
-  const fetchFeed = async () => {
+  const fetchFeed = async (cursor?: string) => {
     try {
-      const res = await api.get('/posts/feed');
+      const url = cursor ? `/posts/feed?cursor=${encodeURIComponent(cursor)}` : '/posts/feed';
+      const res = await api.get(url);
       if (res.data.success) {
-        setPosts(res.data.posts || []);
+        if (cursor) {
+          setPosts((prev) => [...prev, ...(res.data.posts || [])]);
+        } else {
+          setPosts(res.data.posts || []);
+        }
+        setNextCursor(res.data.nextCursor || null);
       }
     } catch (err) {
       console.error('Failed to load feed:', err);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -162,6 +171,21 @@ const Feed: React.FC = () => {
                 onPostDeleted={handlePostDeleted}
               />
             ))}
+
+            {nextCursor && (
+              <div className="pt-2 pb-6 text-center">
+                <button
+                  onClick={() => {
+                    setLoadingMore(true);
+                    fetchFeed(nextCursor);
+                  }}
+                  disabled={loadingMore}
+                  className="px-6 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-xs font-semibold transition cursor-pointer disabled:opacity-50"
+                >
+                  {loadingMore ? 'Loading more posts...' : 'Load more posts'}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

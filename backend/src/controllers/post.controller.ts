@@ -74,14 +74,46 @@ export const createPost = async (req: AuthenticatedRequest, res: Response): Prom
 
 export const getFeedPosts = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const snapshot = await db.collection('posts').orderBy('createdAt', 'desc').limit(50).get();
-    const posts: Post[] = [];
+    const userId = req.user?.id;
+    const friends = req.user?.friends || [];
+    // shortcut: Firestore 'in' filter is limited to 30 authors, paginate author batches or fan out to user feed collections when friend count exceeds 30
+    const authorIds = [userId, ...friends].filter(Boolean).slice(0, 30) as string[];
 
-    snapshot.forEach((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
-      posts.push(doc.data() as Post);
-    });
+    const limit = Math.min(Number(req.query.limit) || 20, 50);
+    const cursor = typeof req.query.cursor === 'string' ? req.query.cursor : undefined;
 
-    res.json({ success: true, posts });
+    let posts: Post[] = [];
+
+    try {
+      let query: FirebaseFirestore.Query = db.collection('posts');
+      if (authorIds.length > 0) {
+        query = query.where('authorId', 'in', authorIds);
+      }
+      query = query.orderBy('createdAt', 'desc');
+      if (cursor) {
+        query = query.startAfter(cursor);
+      }
+      const snapshot = await query.limit(limit).get();
+      snapshot.forEach((doc) => posts.push(doc.data() as Post));
+    } catch (queryErr: any) {
+      // Fallback for unindexed or pending Firestore composite index
+      console.warn('Feed index query failed, using in-memory filter fallback:', queryErr?.message || queryErr);
+      let fallbackQuery: FirebaseFirestore.Query = db.collection('posts').orderBy('createdAt', 'desc');
+      if (cursor) {
+        fallbackQuery = fallbackQuery.startAfter(cursor);
+      }
+      const snapshot = await fallbackQuery.limit(limit * 3).get();
+      snapshot.forEach((doc) => {
+        const p = doc.data() as Post;
+        if (authorIds.includes(p.authorId) && posts.length < limit) {
+          posts.push(p);
+        }
+      });
+    }
+
+    const nextCursor = posts.length === limit ? posts[posts.length - 1].createdAt : null;
+
+    res.json({ success: true, posts, nextCursor });
   } catch (error) {
     console.error('Get feed posts error:', error);
     res.status(500).json({ success: false, message: 'Failed to retrieve posts.' });
