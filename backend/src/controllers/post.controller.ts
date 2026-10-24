@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { FieldValue } from 'firebase-admin/firestore';
 import { db } from '../config/firebase';
 import { Post, Comment } from '../types';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
@@ -138,7 +139,7 @@ export const toggleLikePost = async (req: AuthenticatedRequest, res: Response): 
     const updatedLikes = hasLiked ? likes.filter((id) => id !== userId) : [...likes, userId];
 
     await postRef.update({
-      likes: updatedLikes,
+      likes: hasLiked ? FieldValue.arrayRemove(userId) : FieldValue.arrayUnion(userId),
       updatedAt: new Date().toISOString(),
     });
 
@@ -194,10 +195,9 @@ export const addComment = async (req: AuthenticatedRequest, res: Response): Prom
 
     await db.collection('posts').doc(postId).collection('comments').doc(commentId).set(newComment);
 
-    const postData = postDoc.data() as Post;
-    const currentCommentsCount = postData.commentsCount || 0;
     await postRef.update({
-      commentsCount: currentCommentsCount + 1,
+      commentsCount: FieldValue.increment(1),
+      updatedAt: now,
     });
 
     res.status(201).json({ success: true, comment: newComment });
@@ -280,7 +280,10 @@ export const sharePost = async (req: AuthenticatedRequest, res: Response): Promi
     const postData = postDoc.data() as Post;
     const updatedShares = (postData.sharesCount || 0) + 1;
 
-    await postRef.update({ sharesCount: updatedShares });
+    await postRef.update({
+      sharesCount: FieldValue.increment(1),
+      updatedAt: new Date().toISOString(),
+    });
 
     res.json({ success: true, sharesCount: updatedShares });
   } catch (error) {
