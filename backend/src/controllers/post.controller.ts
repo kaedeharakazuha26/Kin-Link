@@ -258,6 +258,19 @@ export const deletePost = async (req: AuthenticatedRequest, res: Response): Prom
       console.warn('Failed to delete media from ImageKit during post deletion:', mediaErr);
     }
 
+    // Delete comments subcollection
+    // shortcut: deletes up to 500 comments in a single batch, paginate if comments exceed 500
+    try {
+      const commentsSnapshot = await postRef.collection('comments').limit(500).get();
+      if (!commentsSnapshot.empty) {
+        const batch = db.batch();
+        commentsSnapshot.docs.forEach((doc) => batch.delete(doc.ref));
+        await batch.commit();
+      }
+    } catch (commentsErr) {
+      console.warn('Failed to delete post comments subcollection:', commentsErr);
+    }
+
     await postRef.delete();
     res.json({ success: true, message: 'Post deleted successfully.' });
   } catch (error) {
