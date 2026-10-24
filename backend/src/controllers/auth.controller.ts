@@ -253,6 +253,61 @@ export const logout = async (req: AuthenticatedRequest, res: Response): Promise<
   }
 };
 
+export const changePassword = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      res.status(401).json({ success: false, message: 'Not authenticated.' });
+      return;
+    }
+    if (typeof currentPassword !== 'string' || typeof newPassword !== 'string' || !currentPassword || !newPassword) {
+      res.status(400).json({ success: false, message: 'Current and new password are required.' });
+      return;
+    }
+    if (newPassword.length < 6) {
+      res.status(400).json({ success: false, message: 'Password must be at least 6 characters.' });
+      return;
+    }
+    if (newPassword === currentPassword) {
+      res.status(400).json({ success: false, message: 'New password must be different from the current one.' });
+      return;
+    }
+
+    const userRef = db.collection('users').doc(userId);
+    const userData = (await userRef.get()).data() as User;
+
+    const isMatch = await bcrypt.compare(currentPassword, userData.passwordHash || '');
+    if (!isMatch) {
+      res.status(401).json({ success: false, message: 'Current password is incorrect.' });
+      return;
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, await bcrypt.genSalt(10));
+
+    // Revoke every refresh token (logs out other devices), then keep this session alive with a fresh one
+    const refreshToken = generateRefreshToken({ userId, email: userData.email, username: userData.username });
+    await userRef.update({
+      passwordHash,
+      refreshTokens: [refreshToken],
+      updatedAt: new Date().toISOString(),
+    });
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.json({ success: true, message: 'Password updated. Other devices have been signed out.' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ success: false, message: 'Failed to change password.' });
+  }
+};
+
 export const getMe = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     if (!req.user) {
