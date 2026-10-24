@@ -89,61 +89,7 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen }) => {
           </div>
         </div>
 
-        {/* User Identity Pod & Logout Footer */}
-        {user && (
-          <div className="p-4 border-t border-white/[0.08] bg-[#090b12]/60">
-            <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/[0.06] hover:border-indigo-500/30 transition-all duration-200">
-              <div
-                onClick={() => {
-                  navigate('/profile');
-                  closeOnMobile();
-                }}
-                className="flex items-center gap-3 cursor-pointer group"
-              >
-                <div className="relative shrink-0">
-                  <Avatar
-                    src={user.profilePicture}
-                    fallback={user.fullName}
-                    size="md"
-                    className="ring-2 ring-indigo-500/40 group-hover:ring-indigo-400 transition"
-                  />
-                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#0d0f18]" />
-                </div>
 
-                <div className="truncate flex-1">
-                  <h4 className="text-xs font-bold text-white group-hover:text-indigo-300 transition truncate">
-                    {user.fullName}
-                  </h4>
-                  <p className="text-[11px] text-slate-400 truncate">@{user.username}</p>
-                </div>
-
-                <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-white transition shrink-0" />
-              </div>
-
-              <div className="mt-3 pt-2.5 border-t border-white/[0.06] flex items-center justify-between text-xs text-slate-400">
-                <button
-                  onClick={() => {
-                    navigate('/profile');
-                    closeOnMobile();
-                  }}
-                  className="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:text-white hover:bg-white/5 transition cursor-pointer"
-                >
-                  <User className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>Profile</span>
-                </button>
-
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
-                  title="Sign out"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span>Logout</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </aside>
   );
