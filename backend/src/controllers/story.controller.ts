@@ -13,7 +13,8 @@ export const createStory = async (req: AuthenticatedRequest, res: Response): Pro
     }
 
     const { content = '', mediaType = 'text', background = '#4f46e5' } = req.body;
-    let mediaUrl = req.body.mediaUrl;
+    // Only server-uploaded media is trusted; never accept a client-supplied URL
+    let mediaUrl: string | undefined;
 
     if (req.file) {
       mediaUrl = await uploadFile(req.file, 'stories');

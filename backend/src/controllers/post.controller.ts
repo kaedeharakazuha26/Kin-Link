@@ -13,7 +13,8 @@ export const createPost = async (req: AuthenticatedRequest, res: Response): Prom
     }
 
     const { content, mediaType = 'none' } = req.body;
-    let mediaUrl = req.body.mediaUrl;
+    // Only server-uploaded media is trusted; a client URL could point at another user's file
+    let mediaUrl: string | undefined;
     let mediaFileId: string | undefined;
 
     if (req.file) {
@@ -247,12 +248,11 @@ export const deletePost = async (req: AuthenticatedRequest, res: Response): Prom
       return;
     }
 
-    // Delete image from ImageKit server if post contains media
+    // Delete media only by the fileId we stored at upload; deleting by URL could hit another user's file
+    // shortcut: legacy posts without mediaFileId keep their ImageKit file, clean up manually if storage matters
     try {
       if (postData.mediaFileId) {
         await deleteFileFromImageKit(postData.mediaFileId);
-      } else if (postData.mediaUrl) {
-        await deleteFileFromImageKit(postData.mediaUrl);
       }
     } catch (mediaErr) {
       console.warn('Failed to delete media from ImageKit during post deletion:', mediaErr);
