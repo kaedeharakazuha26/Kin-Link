@@ -25,7 +25,11 @@ app.use(cookieParser());
 app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
-// Health Check
+// Root & Health Check
+app.get('/', (req: Request, res: Response) => {
+  res.json({ success: true, message: '🚀 LINK Backend API is live!', version: '2.0', health: '/health' });
+});
+
 app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), app: 'LINK API' });
 });
