@@ -110,10 +110,7 @@ const Discover: React.FC = () => {
           <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-indigo-500/15 via-purple-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10">
-            <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1.5">
-              <Sparkles className="w-4 h-4" />
-              <span>Universal Search</span>
-            </div>
+
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               Search People & Posts
             </h1>
@@ -142,11 +139,10 @@ const Discover: React.FC = () => {
             <div className="flex items-center gap-2 mt-6 pt-5 border-t border-white/[0.08]">
               <button
                 onClick={() => setActiveTab('all')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                  activeTab === 'all'
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${activeTab === 'all'
                     ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
                     : 'text-slate-400 hover:text-white bg-white/[0.04] hover:bg-white/[0.08]'
-                }`}
+                  }`}
               >
                 <Layers className="w-3.5 h-3.5" />
                 All
@@ -157,11 +153,10 @@ const Discover: React.FC = () => {
 
               <button
                 onClick={() => setActiveTab('people')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                  activeTab === 'people'
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${activeTab === 'people'
                     ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
                     : 'text-slate-400 hover:text-white bg-white/[0.04] hover:bg-white/[0.08]'
-                }`}
+                  }`}
               >
                 <Users className="w-3.5 h-3.5" />
                 People
@@ -172,11 +167,10 @@ const Discover: React.FC = () => {
 
               <button
                 onClick={() => setActiveTab('posts')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                  activeTab === 'posts'
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${activeTab === 'posts'
                     ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
                     : 'text-slate-400 hover:text-white bg-white/[0.04] hover:bg-white/[0.08]'
-                }`}
+                  }`}
               >
                 <FileText className="w-3.5 h-3.5" />
                 Posts
