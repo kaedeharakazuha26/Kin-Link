@@ -16,6 +16,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^1.50.0",
     "moment": "^2.31.0",
+    "page-mascot": "^0.1.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-hot-toast": "^2.6.1",
