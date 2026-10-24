@@ -13,6 +13,15 @@ import {
   MessageCircle,
   Radio,
   Image as ImageIcon,
+  Phone,
+  Heart,
+  Send,
+  Video,
+  Share2,
+  Bell,
+  ThumbsUp,
+  Camera,
+  Users,
 } from 'lucide-react';
 import { Mascot } from 'page-mascot';
 import { useAuthStore } from '../store/useAuthStore';
@@ -23,6 +32,19 @@ const MASCOTS = [
   { id: 'fox', label: '🦊 Fox', dir: '/mascots/fox-directions.webp', react: '/mascots/fox-reactions.webp' },
   { id: 'cat', label: '🐱 Cat', dir: '/mascots/cat-directions.webp', react: '/mascots/cat-reactions.webp' },
   { id: 'panda', label: '🐼 Panda', dir: '/mascots/panda-directions.webp', react: '/mascots/panda-reactions.webp' },
+];
+
+const FLOATING_ICONS = [
+  { icon: MessageCircle, color: 'text-indigo-400', glow: 'shadow-indigo-500/20', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', pos: 'top-[10%] left-[5%]', size: 'p-3', iconSize: 'w-5 h-5', anim: 'animate-[float-slow_7s_ease-in-out_infinite]' },
+  { icon: Heart, color: 'text-rose-400', glow: 'shadow-rose-500/20', bg: 'bg-rose-500/10', border: 'border-rose-500/20', pos: 'top-[42%] left-[3%]', size: 'p-2.5', iconSize: 'w-4 h-4', anim: 'animate-[float-reverse_8.5s_ease-in-out_infinite]' },
+  { icon: Phone, color: 'text-emerald-400', glow: 'shadow-emerald-500/20', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', pos: 'bottom-[12%] left-[8%]', size: 'p-3', iconSize: 'w-5 h-5', anim: 'animate-[float-drift_9s_ease-in-out_infinite]' },
+  { icon: Send, color: 'text-sky-400', glow: 'shadow-sky-500/20', bg: 'bg-sky-500/10', border: 'border-sky-500/20', pos: 'top-[20%] left-[45%]', size: 'p-2.5', iconSize: 'w-4 h-4', anim: 'animate-[float-slow_10s_ease-in-out_infinite]' },
+  { icon: Camera, color: 'text-pink-400', glow: 'shadow-pink-500/20', bg: 'bg-pink-500/10', border: 'border-pink-500/20', pos: 'bottom-[20%] left-[38%]', size: 'p-2.5', iconSize: 'w-4 h-4', anim: 'animate-[float-reverse_9.5s_ease-in-out_infinite]' },
+  { icon: ThumbsUp, color: 'text-indigo-400', glow: 'shadow-indigo-500/20', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', pos: 'top-[7%] right-[7%]', size: 'p-3', iconSize: 'w-5 h-5', anim: 'animate-[float-drift_8s_ease-in-out_infinite]' },
+  { icon: Share2, color: 'text-purple-400', glow: 'shadow-purple-500/20', bg: 'bg-purple-500/10', border: 'border-purple-500/20', pos: 'top-[45%] right-[3%]', size: 'p-2.5', iconSize: 'w-4 h-4', anim: 'animate-[float-slow_9s_ease-in-out_infinite]' },
+  { icon: Bell, color: 'text-amber-400', glow: 'shadow-amber-500/20', bg: 'bg-amber-500/10', border: 'border-amber-500/20', pos: 'bottom-[10%] right-[8%]', size: 'p-3', iconSize: 'w-5 h-5', anim: 'animate-[float-reverse_8s_ease-in-out_infinite]' },
+  { icon: Video, color: 'text-violet-400', glow: 'shadow-violet-500/20', bg: 'bg-violet-500/10', border: 'border-violet-500/20', pos: 'top-[28%] right-[42%]', size: 'p-2.5', iconSize: 'w-4 h-4', anim: 'animate-[float-drift_11s_ease-in-out_infinite]' },
+  { icon: Users, color: 'text-teal-400', glow: 'shadow-teal-500/20', bg: 'bg-teal-500/10', border: 'border-teal-500/20', pos: 'bottom-[32%] right-[38%]', size: 'p-2.5', iconSize: 'w-4 h-4', anim: 'animate-[float-slow_8.5s_ease-in-out_infinite]' },
 ];
 
 const Login: React.FC = () => {
@@ -63,9 +85,40 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-[#080911] text-white selection:bg-indigo-500/40 relative overflow-x-hidden">
+      <style>{`
+        @keyframes float-slow {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(6deg); }
+        }
+        @keyframes float-reverse {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(18px) rotate(-8deg); }
+        }
+        @keyframes float-drift {
+          0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
+          33% { transform: translate(12px, -16px) rotate(5deg); }
+          66% { transform: translate(-10px, -8px) rotate(-4deg); }
+        }
+      `}</style>
+
       {/* Background radial glow spots */}
       <div className="absolute top-0 left-1/4 w-[40rem] h-[40rem] bg-indigo-600/10 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-[36rem] h-[36rem] bg-purple-600/10 rounded-full blur-[140px] pointer-events-none" />
+
+      {/* Floating social media icons atmosphere */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        {FLOATING_ICONS.map((item, idx) => {
+          const Icon = item.icon;
+          return (
+            <div
+              key={idx}
+              className={`absolute ${item.pos} ${item.size} rounded-2xl ${item.bg} border ${item.border} backdrop-blur-md shadow-lg ${item.glow} ${item.anim} transition-transform`}
+            >
+              <Icon className={`${item.iconSize} ${item.color}`} />
+            </div>
+          );
+        })}
+      </div>
 
       {/* ============ LEFT: BRAND HERO ============ */}
       <div className="flex-1 relative flex flex-col justify-between p-8 sm:p-12 lg:p-16 z-10">
