@@ -8,7 +8,11 @@ interface SocketState {
   disconnectSocket: () => void;
 }
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+let rawSocketUrl = (import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000').trim().replace(/\/+$/, '');
+if (rawSocketUrl.endsWith('/api')) {
+  rawSocketUrl = rawSocketUrl.slice(0, -4);
+}
+const SOCKET_URL = rawSocketUrl;
 
 export const useSocketStore = create<SocketState>((set, get) => ({
   socket: null,

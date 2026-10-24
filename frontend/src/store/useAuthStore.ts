@@ -76,8 +76,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       toast.success(`Welcome back, ${user.fullName}!`);
       return true;
     } catch (error: any) {
-      const msg = error.response?.data?.message || 'Login failed. Please check your credentials.';
-      toast.error(msg);
+      const serverMsg = error.response?.data?.message;
+      const networkMsg = error.message === 'Network Error'
+        ? 'Cannot connect to backend. Check backend URL, Render service status, or CORS.'
+        : error.message;
+      const msg = serverMsg || networkMsg || 'Login failed. Please check your credentials.';
+      toast.error(msg, { duration: 5000 });
       set({ isLoading: false });
       return false;
     }
@@ -97,8 +101,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       toast.success('Account created successfully!');
       return true;
     } catch (error: any) {
-      const msg = error.response?.data?.message || 'Registration failed. Please try again.';
-      toast.error(msg);
+      const serverMsg = error.response?.data?.message;
+      const networkMsg = error.message === 'Network Error'
+        ? 'Cannot connect to backend. Check backend URL, Render service status, or CORS.'
+        : error.message;
+      const msg = serverMsg || networkMsg || 'Registration failed. Please try again.';
+      toast.error(msg, { duration: 5000 });
       set({ isLoading: false });
       return false;
     }

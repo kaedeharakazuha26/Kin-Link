@@ -5,6 +5,26 @@ import { User, SafeUser } from '../types';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 
+const isProduction = process.env.NODE_ENV === 'production';
+const refreshCookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
+const getAuthErrorMessage = (error: any, fallback: string): string => {
+  if (
+    error?.code === 7 ||
+    error?.message?.includes('permission') ||
+    error?.message?.includes('credential') ||
+    error?.message?.includes('UNAUTHENTICATED')
+  ) {
+    return 'Database permission error. Please verify Firebase credentials on Render.';
+  }
+  return fallback;
+};
+
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password, fullName, username } = req.body;
@@ -75,12 +95,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const { passwordHash: _, refreshTokens: __, ...safeUser } = newUser;
 
     // Cookie configuration
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    res.cookie('refreshToken', refreshToken, refreshCookieOptions);
 
     res.status(201).json({
       success: true,
@@ -88,9 +103,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       user: safeUser,
       accessToken,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Register error:', error);
-    res.status(500).json({ success: false, message: 'Registration failed. Please try again.' });
+    res.status(500).json({ success: false, message: getAuthErrorMessage(error, 'Registration failed. Please try again.') });
   }
 };
 
@@ -146,12 +161,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     const { passwordHash: _, refreshTokens: __, ...safeUser } = userData;
 
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie('refreshToken', refreshToken, refreshCookieOptions);
 
     res.json({
       success: true,
@@ -159,9 +169,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       user: safeUser,
       accessToken,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Login error:', error);
-    res.status(500).json({ success: false, message: 'Login failed. Please try again.' });
+    res.status(500).json({ success: false, message: getAuthErrorMessage(error, 'Login failed. Please try again.') });
   }
 };
 
@@ -213,12 +223,7 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
       updatedAt: new Date().toISOString(),
     });
 
-    res.cookie('refreshToken', newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie('refreshToken', newRefreshToken, refreshCookieOptions);
 
     res.json({
       success: true,
@@ -245,7 +250,11 @@ export const logout = async (req: AuthenticatedRequest, res: Response): Promise<
       }
     }
 
-    res.clearCookie('refreshToken');
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
+    });
     res.json({ success: true, message: 'Logged out successfully.' });
   } catch (error) {
     console.error('Logout error:', error);

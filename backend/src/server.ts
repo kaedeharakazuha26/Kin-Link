@@ -2,15 +2,21 @@ import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import app from './app';
 import { setupSocketIO } from './socket';
+import { isOriginAllowed } from './utils/cors';
 
 const PORT = process.env.PORT || 5000;
-const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
 const server = http.createServer(app);
 
 const io = new SocketIOServer(server, {
   cors: {
-    origin: [CLIENT_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   },
 });

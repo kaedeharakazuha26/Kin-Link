@@ -7,16 +7,25 @@ import postRoutes from './routes/post.routes';
 import storyRoutes from './routes/story.routes';
 import userRoutes from './routes/user.routes';
 import messageRoutes from './routes/message.routes';
+import { isOriginAllowed } from './utils/cors';
+import { db } from './config/firebase';
 
 dotenv.config();
 
 const app: Application = express();
 
-const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+// Trust reverse proxy (Render, Vercel, Heroku) for accurate IP detection
+app.set('trust proxy', 1);
 
 app.use(
   cors({
-    origin: [clientUrl, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      }
+    },
     credentials: true,
   })
 );
@@ -30,8 +39,25 @@ app.get('/', (req: Request, res: Response) => {
   res.json({ success: true, message: '🚀 LINK Backend API is live!', version: '2.0', health: '/health' });
 });
 
-app.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString(), app: 'LINK API' });
+app.get('/health', async (req: Request, res: Response) => {
+  let dbStatus = 'connected';
+  let dbError: string | undefined;
+
+  try {
+    // Quick Firestore probe to verify database connectivity
+    await db.collection('_health').limit(1).get();
+  } catch (err: any) {
+    dbStatus = 'disconnected';
+    dbError = err.message || String(err);
+  }
+
+  res.json({
+    status: dbStatus === 'connected' ? 'ok' : 'degraded',
+    database: dbStatus,
+    ...(dbError ? { databaseError: dbError } : {}),
+    timestamp: new Date().toISOString(),
+    app: 'LINK API',
+  });
 });
 
 // API Routes
