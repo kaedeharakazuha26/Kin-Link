@@ -46,35 +46,27 @@ export const uploadFileDetailed = async (
       }
     }
 
-    if (imagekit) {
-      const ext = path.extname(originalName) || (uploadMimetype === 'image/webp' ? '.webp' : '.jpg');
-      const filename = `${folder}_${Date.now()}_${Math.random().toString(36).substring(2, 8)}${ext}`;
-
-      const response = await imagekit.upload({
-        file: uploadBuffer,
-        fileName: filename,
-        folder: `/link/${folder}`,
-        useUniqueFileName: true,
-      });
-
-      return {
-        url: response.url,
-        fileId: response.fileId,
-      };
+    if (!imagekit) {
+      throw new Error('ImageKit storage is not configured.');
     }
 
-    // Fallback if ImageKit keys are not set yet
-    console.warn(`⚠️ ImageKit not configured, using base64 inline fallback for ${file.originalname}`);
-    const base64 = uploadBuffer.toString('base64');
+    const ext = path.extname(originalName) || (uploadMimetype === 'image/webp' ? '.webp' : '.jpg');
+    const filename = `${folder}_${Date.now()}_${Math.random().toString(36).substring(2, 8)}${ext}`;
+
+    const response = await imagekit.upload({
+      file: uploadBuffer,
+      fileName: filename,
+      folder: `/link/${folder}`,
+      useUniqueFileName: true,
+    });
+
     return {
-      url: `data:${uploadMimetype};base64,${base64}`,
+      url: response.url,
+      fileId: response.fileId,
     };
-  } catch (error) {
-    console.error('Upload error, using inline fallback:', error);
-    const base64 = file.buffer.toString('base64');
-    return {
-      url: `data:${file.mimetype};base64,${base64}`,
-    };
+  } catch (error: any) {
+    console.error('Upload failed:', error?.message || error);
+    throw new Error('Failed to upload file to storage.');
   }
 };
 
