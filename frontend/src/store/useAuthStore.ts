@@ -6,7 +6,6 @@ import toast from 'react-hot-toast';
 interface AuthState {
   user: User | null;
   accessToken: string | null;
-  refreshToken: string | null;
   isLoading: boolean;
   isCheckingAuth: boolean;
   login: (emailOrUsername: string, password: string) => Promise<boolean>;
@@ -20,7 +19,6 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null,
   accessToken: localStorage.getItem('accessToken'),
-  refreshToken: localStorage.getItem('refreshToken'),
   isLoading: false,
   isCheckingAuth: true,
 
@@ -45,7 +43,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   checkAuth: async () => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
-      set({ user: null, accessToken: null, refreshToken: null, isCheckingAuth: false });
+      set({ user: null, accessToken: null, isCheckingAuth: false });
       return;
     }
 
@@ -68,13 +66,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       const res = await api.post('/auth/login', { emailOrUsername, password });
-      const { user, accessToken, refreshToken } = res.data;
+      const { user, accessToken } = res.data;
 
       localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
+      localStorage.removeItem('refreshToken'); // cleanup any legacy token
       localStorage.setItem('user', JSON.stringify(user));
 
-      set({ user, accessToken, refreshToken, isLoading: false });
+      set({ user, accessToken, isLoading: false });
       toast.success(`Welcome back, ${user.fullName}!`);
       return true;
     } catch (error: any) {
@@ -89,13 +87,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       const res = await api.post('/auth/register', { email, password, fullName, username });
-      const { user, accessToken, refreshToken } = res.data;
+      const { user, accessToken } = res.data;
 
       localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
+      localStorage.removeItem('refreshToken'); // cleanup any legacy token
       localStorage.setItem('user', JSON.stringify(user));
 
-      set({ user, accessToken, refreshToken, isLoading: false });
+      set({ user, accessToken, isLoading: false });
       toast.success('Account created successfully!');
       return true;
     } catch (error: any) {
@@ -107,16 +105,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logout: async () => {
-    const refreshToken = get().refreshToken;
     try {
-      await api.post('/auth/logout', { refreshToken });
+      await api.post('/auth/logout');
     } catch (error) {
       // ignore logout network errors
     } finally {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
-      set({ user: null, accessToken: null, refreshToken: null });
+      set({ user: null, accessToken: null });
       toast.success('Logged out.');
     }
   },
