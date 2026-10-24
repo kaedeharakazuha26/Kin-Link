@@ -7,6 +7,7 @@ import Friends from './pages/Friends';
 import Profile from './pages/Profile';
 import CreatePost from './pages/CreatePost';
 import Discover from './pages/Discover';
+import Settings from './pages/Settings';
 import ChatBox from './pages/ChatBox';
 import Layout from './pages/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -55,6 +56,7 @@ const App: React.FC = () => {
           <Route path="profile" element={<Profile />} />
           <Route path="profile/:profileId" element={<Profile />} />
           <Route path="create-post" element={<CreatePost />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
 
         {/* Catch-all redirect */}

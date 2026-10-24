@@ -4,6 +4,7 @@ import {
   Compass,
   Home,
   MessageSquare,
+  Settings as SettingsIcon,
   Sparkles,
   User as UserIcon,
   Users2,
@@ -29,6 +30,7 @@ export const MenuItems: React.FC<MenuItemsProps> = ({ setSidebarOpen }) => {
     },
     { to: '/discover', label: 'Discover & Search', icon: Compass, badge: null },
     { to: '/profile', label: 'My Profile', icon: UserIcon, badge: null },
+    { to: '/settings', label: 'Settings', icon: SettingsIcon, badge: null },
   ];
 
   return (
