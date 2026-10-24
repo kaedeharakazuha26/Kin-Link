@@ -54,6 +54,7 @@ export interface Story {
   userProfilePicture: string;
   content: string;
   mediaUrl?: string;
+  mediaFileId?: string;
   mediaType: 'text' | 'image' | 'video';
   background?: string;
   views: string[]; // user IDs who viewed

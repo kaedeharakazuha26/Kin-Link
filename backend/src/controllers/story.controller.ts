@@ -1,8 +1,9 @@
 import { Response } from 'express';
+import { FieldValue } from 'firebase-admin/firestore';
 import { db } from '../config/firebase';
 import { Story } from '../types';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
-import { uploadFile } from '../utils/upload';
+import { uploadFileDetailed, deleteFileFromImageKit } from '../utils/upload';
 
 export const createStory = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
@@ -15,9 +16,12 @@ export const createStory = async (req: AuthenticatedRequest, res: Response): Pro
     const { content = '', mediaType = 'text', background = '#4f46e5' } = req.body;
     // Only server-uploaded media is trusted; never accept a client-supplied URL
     let mediaUrl: string | undefined;
+    let mediaFileId: string | undefined;
 
     if (req.file) {
-      mediaUrl = await uploadFile(req.file, 'stories');
+      const uploadRes = await uploadFileDetailed(req.file, 'stories');
+      mediaUrl = uploadRes.url;
+      mediaFileId = uploadRes.fileId;
     }
 
     const storyId = db.collection('stories').doc().id;
@@ -48,6 +52,9 @@ export const createStory = async (req: AuthenticatedRequest, res: Response): Pro
 
     if (mediaUrl) {
       newStory.mediaUrl = mediaUrl;
+      if (mediaFileId) {
+        newStory.mediaFileId = mediaFileId;
+      }
     }
     if (detectedType === 'text') {
       newStory.background = background || '#4f46e5';
@@ -65,6 +72,30 @@ export const createStory = async (req: AuthenticatedRequest, res: Response): Pro
 export const getActiveStories = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const nowIso = new Date().toISOString();
+
+    // Opportunistically delete expired stories and their media
+    // shortcut: batches up to 50 expired stories per request to avoid worker/cron overhead
+    db.collection('stories')
+      .where('expiresAt', '<=', nowIso)
+      .limit(50)
+      .get()
+      .then(async (expiredSnapshot) => {
+        if (!expiredSnapshot.empty) {
+          const batch = db.batch();
+          for (const doc of expiredSnapshot.docs) {
+            const data = doc.data() as Story;
+            if (data.mediaFileId) {
+              deleteFileFromImageKit(data.mediaFileId).catch(() => {});
+            }
+            batch.delete(doc.ref);
+          }
+          await batch.commit();
+        }
+      })
+      .catch((err) => {
+        console.warn('Failed to clean up expired stories:', err);
+      });
+
     const snapshot = await db
       .collection('stories')
       .where('expiresAt', '>', nowIso)
@@ -94,21 +125,9 @@ export const markStoryViewed = async (req: AuthenticatedRequest, res: Response):
     }
 
     const storyRef = db.collection('stories').doc(storyId);
-    const storyDoc = await storyRef.get();
-
-    if (!storyDoc.exists) {
-      res.status(404).json({ success: false, message: 'Story not found.' });
-      return;
-    }
-
-    const storyData = storyDoc.data() as Story;
-    const views = storyData.views || [];
-
-    if (!views.includes(userId)) {
-      await storyRef.update({
-        views: [...views, userId],
-      });
-    }
+    await storyRef.update({
+      views: FieldValue.arrayUnion(userId),
+    });
 
     res.json({ success: true });
   } catch (error) {
