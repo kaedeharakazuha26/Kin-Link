@@ -261,6 +261,43 @@ export const getComments = async (req: AuthenticatedRequest, res: Response): Pro
   }
 };
 
+export const updatePost = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const postId = String(req.params.postId);
+    const { content } = req.body;
+    const userId = req.user?.id;
+
+    if (!content || !content.trim()) {
+      res.status(400).json({ success: false, message: 'Post content cannot be empty.' });
+      return;
+    }
+
+    const postRef = db.collection('posts').doc(postId);
+    const postDoc = await postRef.get();
+
+    if (!postDoc.exists) {
+      res.status(404).json({ success: false, message: 'Post not found.' });
+      return;
+    }
+
+    const postData = postDoc.data() as Post;
+    if (postData.authorId !== userId) {
+      res.status(403).json({ success: false, message: 'You can only edit your own posts.' });
+      return;
+    }
+
+    await postRef.update({
+      content: content.trim(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    res.json({ success: true, message: 'Post updated successfully.', content: content.trim() });
+  } catch (error) {
+    console.error('Update post error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update post.' });
+  }
+};
+
 export const deletePost = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const postId = String(req.params.postId);

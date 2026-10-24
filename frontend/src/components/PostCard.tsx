@@ -3,7 +3,7 @@ import { Post, Comment } from '../types';
 import { useAuthStore } from '../store/useAuthStore';
 import { api } from '../services/api';
 import { Avatar } from './ui/avatar';
-import { Heart, MessageSquare, Share2, Trash2, Send, Loader2 } from 'lucide-react';
+import { Heart, MessageSquare, Share2, Trash2, Send, Loader2, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -30,6 +30,31 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
   const [commentsCount, setCommentsCount] = useState<number>(post.commentsCount || 0);
 
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const [content, setContent] = useState(post.content || '');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(post.content || '');
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+
+  const handleSaveEdit = async () => {
+    if (!editContent.trim()) {
+      toast.error('Post content cannot be empty.');
+      return;
+    }
+    setIsSavingEdit(true);
+    try {
+      const res = await api.put(`/posts/${post.id}`, { content: editContent.trim() });
+      if (res.data.success) {
+        setContent(editContent.trim());
+        setIsEditing(false);
+        toast.success('Post updated!');
+      }
+    } catch {
+      toast.error('Failed to update post.');
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
 
   const formatTime = (isoString: string) => {
     try {
@@ -160,22 +185,63 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
         </div>
 
         {isAuthor && (
-          <button
-            onClick={handleDelete}
-            disabled={isDeleting}
-            className="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition cursor-pointer"
-            title="Delete post"
-          >
-            {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => {
+                setEditContent(content);
+                setIsEditing(!isEditing);
+              }}
+              className="p-2 text-slate-500 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-xl transition cursor-pointer"
+              title="Edit post"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition cursor-pointer"
+              title="Delete post"
+            >
+              {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+            </button>
+          </div>
         )}
       </div>
 
-      {/* Content Text */}
-      {post.content && (
-        <div className="px-5 pb-3 text-sm sm:text-base text-slate-200 leading-relaxed whitespace-pre-wrap">
-          {post.content}
+      {/* Content Text or Edit Mode */}
+      {isEditing ? (
+        <div className="px-5 pb-3 space-y-2">
+          <textarea
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            rows={3}
+            className="w-full p-3 rounded-2xl bg-white/[0.05] border border-white/10 text-white text-sm focus:outline-none focus:border-indigo-500/50 resize-none transition"
+          />
+          <div className="flex items-center justify-end gap-2">
+            <button
+              onClick={() => {
+                setEditContent(content);
+                setIsEditing(false);
+              }}
+              className="px-3 py-1.5 text-xs text-slate-400 hover:text-white rounded-xl transition cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSaveEdit}
+              disabled={isSavingEdit}
+              className="px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl transition cursor-pointer disabled:opacity-50"
+            >
+              {isSavingEdit ? 'Saving...' : 'Save'}
+            </button>
+          </div>
         </div>
+      ) : (
+        content && (
+          <div className="px-5 pb-3 text-sm sm:text-base text-slate-200 leading-relaxed whitespace-pre-wrap">
+            {content}
+          </div>
+        )
       )}
 
       {/* Post Media (Image / Video) */}

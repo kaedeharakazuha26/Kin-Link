@@ -6,6 +6,7 @@ import {
   toggleLikePost,
   addComment,
   getComments,
+  updatePost,
   deletePost,
   sharePost,
   searchPosts,
@@ -22,6 +23,7 @@ router.post('/', protectRoute, upload.single('media'), createPost);
 router.post('/:postId/like', protectRoute, toggleLikePost);
 router.post('/:postId/comments', protectRoute, addComment);
 router.get('/:postId/comments', protectRoute, getComments);
+router.put('/:postId', protectRoute, updatePost);
 router.delete('/:postId', protectRoute, deletePost);
 router.post('/:postId/share', protectRoute, sharePost);
 
