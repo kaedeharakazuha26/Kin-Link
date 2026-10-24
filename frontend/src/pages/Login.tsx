@@ -92,16 +92,13 @@ const Login: React.FC = () => {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
             </span>
-            <span className="text-xs text-slate-300 font-semibold">Live System Online</span>
+
           </div>
         </div>
 
         {/* Hero Copy */}
         <div className="my-12 lg:my-0 max-w-xl">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-300 font-semibold mb-6">
-            <Radio className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
-            Fast, Real-time Social Networking
-          </div>
+
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.08] text-white">
             Connect without friction.{' '}
@@ -113,25 +110,6 @@ const Login: React.FC = () => {
           <p className="mt-5 text-sm sm:text-base text-slate-400 leading-relaxed">
             Instant messaging, 24-hour stories, friends discovery, and rich media feeds designed for fast social connection.
           </p>
-
-          {/* Feature Pills */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-8">
-            <div className="p-4 rounded-2xl bg-[#111322]/80 border border-white/[0.06] backdrop-blur-sm">
-              <MessageCircle className="w-5 h-5 text-indigo-400 mb-2" />
-              <h4 className="text-xs font-bold text-white">Live Chat</h4>
-              <p className="text-[11px] text-slate-400 mt-0.5">Real-time Socket.io messages</p>
-            </div>
-            <div className="p-4 rounded-2xl bg-[#111322]/80 border border-white/[0.06] backdrop-blur-sm">
-              <ImageIcon className="w-5 h-5 text-purple-400 mb-2" />
-              <h4 className="text-xs font-bold text-white">Stories & Media</h4>
-              <p className="text-[11px] text-slate-400 mt-0.5">ImageKit CDN delivery</p>
-            </div>
-            <div className="p-4 rounded-2xl bg-[#111322]/80 border border-white/[0.06] backdrop-blur-sm">
-              <ShieldCheck className="w-5 h-5 text-emerald-400 mb-2" />
-              <h4 className="text-xs font-bold text-white">Hardened Auth</h4>
-              <p className="text-[11px] text-slate-400 mt-0.5">JWT token rotation & cookies</p>
-            </div>
-          </div>
         </div>
 
         {/* Hero footer note */}
@@ -160,17 +138,16 @@ const Login: React.FC = () => {
 
             {/* Mascot Selector Pills */}
             <div className="flex items-center gap-1.5 mt-1 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] backdrop-blur-md">
-              <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider pr-1">Mascot:</span>
+
               {MASCOTS.map((m) => (
                 <button
                   key={m.id}
                   type="button"
                   onClick={() => setSelectedMascot(m)}
-                  className={`px-2 py-0.5 rounded-full text-[11px] font-semibold transition cursor-pointer ${
-                    selectedMascot.id === m.id
-                      ? 'bg-indigo-600 text-white shadow-sm'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
+                  className={`px-2 py-0.5 rounded-full text-[11px] font-semibold transition cursor-pointer ${selectedMascot.id === m.id
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                    }`}
                 >
                   {m.label}
                 </button>
@@ -187,22 +164,20 @@ const Login: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('login')}
-                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
-                  activeTab === 'login'
-                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-600/30'
-                    : 'text-slate-400 hover:text-white'
-                }`}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeTab === 'login'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-600/30'
+                  : 'text-slate-400 hover:text-white'
+                  }`}
               >
                 Sign In
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('register')}
-                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
-                  activeTab === 'register'
-                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-600/30'
-                    : 'text-slate-400 hover:text-white'
-                }`}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeTab === 'register'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-600/30'
+                  : 'text-slate-400 hover:text-white'
+                  }`}
               >
                 Create Account
               </button>
@@ -278,8 +253,8 @@ const Login: React.FC = () => {
                 </Button>
 
                 <div className="pt-3 text-center border-t border-white/[0.06] flex items-center justify-center gap-1.5 text-[11px] text-slate-500">
-                  <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>Protected session with encrypted token rotation</span>
+
+
                 </div>
               </form>
             ) : (
