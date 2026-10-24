@@ -378,22 +378,48 @@ export const searchPosts = async (req: AuthenticatedRequest, res: Response): Pro
   try {
     const q = ((req.query.q as string) || '').toLowerCase().trim();
 
-    const snapshot = await db.collection('posts').orderBy('createdAt', 'desc').limit(100).get();
-    const posts: Post[] = [];
+    if (!q) {
+      res.json({ success: true, posts: [] });
+      return;
+    }
+
+    const limit = Math.min(Number(req.query.limit) || 20, 50);
+    const words = q.split(/\s+/).filter(Boolean);
+
+    // shortcut: in-memory relevance ranking over recent posts, upgrade to Algolia/Typesense when posts scale
+    const snapshot = await db.collection('posts').orderBy('createdAt', 'desc').limit(200).get();
+    const scoredPosts: Array<{ post: Post; score: number }> = [];
 
     snapshot.forEach((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
       const p = doc.data() as Post;
-      if (!q) {
-        posts.push(p);
-      } else {
-        const matchContent = p.content && p.content.toLowerCase().includes(q);
-        const matchAuthor = (p.authorName && p.authorName.toLowerCase().includes(q)) ||
-                            (p.authorUsername && p.authorUsername.toLowerCase().includes(q));
-        if (matchContent || matchAuthor) {
-          posts.push(p);
-        }
+      const content = (p.content || '').toLowerCase();
+      const authorName = (p.authorName || '').toLowerCase();
+      const authorUsername = (p.authorUsername || '').toLowerCase();
+
+      let score = 0;
+
+      // Exact phrase matches get highest priority
+      if (content.includes(q)) score += 50;
+      if (authorUsername === q || authorName === q) score += 100;
+      else if (authorUsername.includes(q) || authorName.includes(q)) score += 40;
+
+      // Keyword matches with frequency weighting
+      for (const word of words) {
+        const countInContent = (content.split(word).length - 1);
+        if (countInContent > 0) score += Math.min(countInContent * 15, 60);
+
+        if (authorUsername.includes(word) || authorName.includes(word)) score += 20;
+      }
+
+      if (score > 0) {
+        scoredPosts.push({ post: p, score });
       }
     });
+
+    // Closest matches first
+    scoredPosts.sort((a, b) => b.score - a.score);
+
+    const posts = scoredPosts.slice(0, limit).map((item) => item.post);
 
     res.json({ success: true, posts });
   } catch (error) {

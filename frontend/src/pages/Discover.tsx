@@ -36,11 +36,19 @@ const Discover: React.FC = () => {
   );
 
   const executeSearch = async (searchTerm: string) => {
+    const clean = searchTerm.trim();
+    if (!clean) {
+      setUsers([]);
+      setPosts([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const [usersRes, postsRes] = await Promise.all([
-        api.get(`/users/search?q=${encodeURIComponent(searchTerm)}`),
-        api.get(`/posts/search?q=${encodeURIComponent(searchTerm)}`),
+        api.get(`/users/search?q=${encodeURIComponent(clean)}`),
+        api.get(`/posts/search?q=${encodeURIComponent(clean)}`),
       ]);
 
       if (usersRes.data.success) {
@@ -185,6 +193,16 @@ const Discover: React.FC = () => {
           <div className="py-24 flex flex-col items-center justify-center gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
             <p className="text-xs text-slate-400 font-medium">Searching LINK directory...</p>
+          </div>
+        ) : !query.trim() ? (
+          <div className="bg-[#11131f] rounded-3xl p-14 text-center border border-white/[0.08] shadow-xl">
+            <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto mb-3">
+              <Search className="w-7 h-7 text-indigo-400" />
+            </div>
+            <h3 className="text-base font-bold text-white">Find People & Posts</h3>
+            <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+              Type in the search bar above to find the closest matching users, topics, and posts across LINK.
+            </p>
           </div>
         ) : totalResults === 0 ? (
           <div className="bg-[#11131f] rounded-3xl p-14 text-center border border-white/[0.08] shadow-xl">

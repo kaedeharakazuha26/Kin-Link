@@ -114,6 +114,11 @@ export const searchUsers = async (req: AuthenticatedRequest, res: Response): Pro
     const excludeFriends = req.query.excludeFriends === 'true';
     const currentUserId = req.user?.id;
 
+    if (!q && !excludeFriends) {
+      res.json({ success: true, users: [] });
+      return;
+    }
+
     let currentUserFriends: string[] = [];
     if (currentUserId) {
       const userDoc = await db.collection('users').doc(currentUserId).get();
@@ -122,20 +127,45 @@ export const searchUsers = async (req: AuthenticatedRequest, res: Response): Pro
       }
     }
 
-    const snapshot = await db.collection('users').limit(50).get();
+    const snapshot = await db.collection('users').limit(100).get();
+    const scoredUsers: Array<{ user: SafeUser; score: number }> = [];
 
-    const results: SafeUser[] = [];
     snapshot.forEach((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
       const u = doc.data() as User;
-      if (u.id !== currentUserId) {
-        if (excludeFriends && currentUserFriends.includes(u.id)) {
-          return;
-        }
-        if (!q || u.fullName.toLowerCase().includes(q) || u.username.toLowerCase().includes(q)) {
-          results.push(toSafeUser(u));
-        }
+      if (u.id === currentUserId) return;
+      if (excludeFriends && currentUserFriends.includes(u.id)) return;
+
+      if (!q) {
+        // Suggested friends without search query
+        scoredUsers.push({ user: toSafeUser(u), score: 1 });
+        return;
+      }
+
+      const username = (u.username || '').toLowerCase();
+      const fullName = (u.fullName || '').toLowerCase();
+      const bio = (u.bio || '').toLowerCase();
+
+      let score = 0;
+      if (username === q) score += 100;
+      else if (username.startsWith(q)) score += 60;
+      else if (username.includes(q)) score += 30;
+
+      if (fullName === q) score += 90;
+      else if (fullName.startsWith(q)) score += 50;
+      else if (fullName.includes(q)) score += 20;
+
+      if (bio.includes(q)) score += 10;
+
+      if (score > 0) {
+        scoredUsers.push({ user: toSafeUser(u), score });
       }
     });
+
+    // Closest match first
+    scoredUsers.sort((a, b) => b.score - a.score);
+
+    const limit = excludeFriends && !q ? 5 : 20;
+    const results = scoredUsers.slice(0, limit).map((item) => item.user);
 
     res.json({ success: true, users: results });
   } catch (error) {
