@@ -1,7 +1,14 @@
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
-const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_SECRET || 'kinlink_super_secret_access_token_key_2026';
-const REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_SECRET || 'kinlink_super_secret_refresh_token_key_2026';
+dotenv.config();
+
+const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_SECRET;
+const REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_SECRET;
+
+if (!ACCESS_TOKEN_SECRET || !REFRESH_TOKEN_SECRET) {
+  throw new Error('FATAL: JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be set in environment variables.');
+}
 
 const ACCESS_TOKEN_EXPIRY = process.env.JWT_ACCESS_EXPIRY || '15m';
 const REFRESH_TOKEN_EXPIRY = process.env.JWT_REFRESH_EXPIRY || '7d';
