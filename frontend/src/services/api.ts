@@ -79,12 +79,20 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Refresh token is transmitted securely via httpOnly cookie withCredentials
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true });
+        // Refresh token is transmitted via httpOnly cookie; fallback to body token if third-party cookies are shielded
+        const fallbackToken = localStorage.getItem('refreshToken');
+        const response = await axios.post(
+          `${API_BASE_URL}/auth/refresh`,
+          fallbackToken ? { refreshToken: fallbackToken } : {},
+          { withCredentials: true }
+        );
 
-        const { accessToken: newAccessToken } = response.data;
+        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data;
 
         localStorage.setItem('accessToken', newAccessToken);
+        if (newRefreshToken) {
+          localStorage.setItem('refreshToken', newRefreshToken);
+        }
 
         processQueue(null, newAccessToken);
 

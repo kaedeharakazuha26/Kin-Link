@@ -66,10 +66,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       const res = await api.post('/auth/login', { emailOrUsername, password });
-      const { user, accessToken } = res.data;
+      const { user, accessToken, refreshToken } = res.data;
 
       localStorage.setItem('accessToken', accessToken);
-      localStorage.removeItem('refreshToken'); // cleanup any legacy token
+      if (refreshToken) {
+        localStorage.setItem('refreshToken', refreshToken);
+      }
       localStorage.setItem('user', JSON.stringify(user));
 
       set({ user, accessToken, isLoading: false });
@@ -91,10 +93,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       const res = await api.post('/auth/register', { email, password, fullName, username });
-      const { user, accessToken } = res.data;
+      const { user, accessToken, refreshToken } = res.data;
 
       localStorage.setItem('accessToken', accessToken);
-      localStorage.removeItem('refreshToken'); // cleanup any legacy token
+      if (refreshToken) {
+        localStorage.setItem('refreshToken', refreshToken);
+      }
       localStorage.setItem('user', JSON.stringify(user));
 
       set({ user, accessToken, isLoading: false });

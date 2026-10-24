@@ -102,6 +102,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       message: 'Account registered successfully.',
       user: safeUser,
       accessToken,
+      refreshToken,
     });
   } catch (error: any) {
     console.error('Register error:', error);
@@ -168,6 +169,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       message: 'Logged in successfully.',
       user: safeUser,
       accessToken,
+      refreshToken,
     });
   } catch (error: any) {
     console.error('Login error:', error);
@@ -228,6 +230,7 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
     res.json({
       success: true,
       accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
     });
   } catch (error) {
     console.error('Refresh token error:', error);
