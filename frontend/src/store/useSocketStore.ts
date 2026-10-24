@@ -19,14 +19,14 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     if (existingSocket?.connected) return;
 
     const socket = io(SOCKET_URL, {
-      auth: { token: token || localStorage.getItem('accessToken') },
+      // Callback form re-reads the token on every reconnect, so a refreshed access token is used
+      auth: (cb) => cb({ token: token || localStorage.getItem('accessToken') }),
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
     });
 
     socket.on('connect', () => {
-      console.log('Socket connected:', socket.id);
-      socket.emit('register_user', userId);
+      console.log('Socket connected:', socket.id, 'user:', userId);
     });
 
     socket.on('online_users', (users: string[]) => {

@@ -1,49 +1,47 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { verifyAccessToken } from '../utils/jwt';
+import { db } from '../config/firebase';
 
 // Map of userId -> Set of socket IDs
 const onlineUsers = new Map<string, Set<string>>();
 
 export const setupSocketIO = (io: SocketIOServer) => {
+  // Reject unauthenticated sockets; identity comes only from the verified token
   io.use((socket: Socket, next) => {
     const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.split(' ')[1];
-    if (token) {
-      const payload = verifyAccessToken(token);
-      if (payload) {
-        (socket as any).userId = payload.userId;
-        (socket as any).username = payload.username;
-      }
-    }
+    const payload = token ? verifyAccessToken(token) : null;
+    if (!payload) return next(new Error('Unauthorized'));
+    socket.data.userId = payload.userId;
+    socket.data.username = payload.username;
     next();
   });
 
   io.on('connection', (socket: Socket) => {
-    const userId = (socket as any).userId;
+    const userId: string = socket.data.userId;
+    const username: string = socket.data.username;
 
-    if (userId) {
-      if (!onlineUsers.has(userId)) {
-        onlineUsers.set(userId, new Set());
-      }
-      onlineUsers.get(userId)!.add(socket.id);
+    // Personal room for targeted notifications
+    socket.join(`user_${userId}`);
 
-      // Notify everyone about online users
-      io.emit('online_users', Array.from(onlineUsers.keys()));
-      console.log(`User connected: ${userId} (socket ${socket.id})`);
+    if (!onlineUsers.has(userId)) {
+      onlineUsers.set(userId, new Set());
     }
+    onlineUsers.get(userId)!.add(socket.id);
+    io.emit('online_users', Array.from(onlineUsers.keys()));
+    console.log(`User connected: ${userId} (socket ${socket.id})`);
 
-    // Explicit registration event
-    socket.on('register_user', (regUserId: string) => {
-      (socket as any).userId = regUserId;
-      if (!onlineUsers.has(regUserId)) {
-        onlineUsers.set(regUserId, new Set());
+    // Join conversation room, only if this user is a participant
+    socket.on('join_conversation', async (conversationId: string) => {
+      try {
+        if (typeof conversationId !== 'string' || !conversationId) return;
+        const convDoc = await db.collection('conversations').doc(conversationId).get();
+        const participants: string[] = convDoc.data()?.participants || [];
+        if (participants.includes(userId)) {
+          socket.join(`conv_${conversationId}`);
+        }
+      } catch (err) {
+        console.warn('join_conversation error:', err);
       }
-      onlineUsers.get(regUserId)!.add(socket.id);
-      io.emit('online_users', Array.from(onlineUsers.keys()));
-    });
-
-    // Join conversation room
-    socket.on('join_conversation', (conversationId: string) => {
-      socket.join(`conv_${conversationId}`);
     });
 
     // Leave conversation room
@@ -51,37 +49,25 @@ export const setupSocketIO = (io: SocketIOServer) => {
       socket.leave(`conv_${conversationId}`);
     });
 
-    // Real-time new message sent
-    socket.on('send_message', (data: { conversationId: string; message: any; receiverId?: string }) => {
-      const { conversationId, message, receiverId } = data;
-      // Broadcast to room
-      io.to(`conv_${conversationId}`).emit('new_message', message);
-
-      // If receiver is online but outside room, send notification event
-      if (receiverId && onlineUsers.has(receiverId)) {
-        const receiverSockets = onlineUsers.get(receiverId);
-        receiverSockets?.forEach((sockId) => {
-          io.to(sockId).emit('message_notification', message);
-        });
-      }
+    // Typing indicators: only within joined rooms, identity from the token
+    socket.on('typing', ({ conversationId }: { conversationId: string }) => {
+      const room = `conv_${conversationId}`;
+      if (!socket.rooms.has(room)) return;
+      socket.to(room).emit('user_typing', { conversationId, userId, username });
     });
 
-    // Typing indicators
-    socket.on('typing', ({ conversationId, userId, username }: { conversationId: string; userId: string; username: string }) => {
-      socket.to(`conv_${conversationId}`).emit('user_typing', { conversationId, userId, username });
-    });
-
-    socket.on('stop_typing', ({ conversationId, userId }: { conversationId: string; userId: string }) => {
-      socket.to(`conv_${conversationId}`).emit('user_stop_typing', { conversationId, userId });
+    socket.on('stop_typing', ({ conversationId }: { conversationId: string }) => {
+      const room = `conv_${conversationId}`;
+      if (!socket.rooms.has(room)) return;
+      socket.to(room).emit('user_stop_typing', { conversationId, userId });
     });
 
     socket.on('disconnect', () => {
-      const uId = (socket as any).userId;
-      if (uId && onlineUsers.has(uId)) {
-        const userSockets = onlineUsers.get(uId)!;
+      const userSockets = onlineUsers.get(userId);
+      if (userSockets) {
         userSockets.delete(socket.id);
         if (userSockets.size === 0) {
-          onlineUsers.delete(uId);
+          onlineUsers.delete(userId);
         }
         io.emit('online_users', Array.from(onlineUsers.keys()));
       }

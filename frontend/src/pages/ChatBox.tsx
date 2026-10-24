@@ -186,12 +186,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ conversationId: propConvId, targetUse
       if (res.data.success && res.data.message) {
         const sentMessage = res.data.message;
 
-        // Broadcast through socket
-        socket?.emit('send_message', {
-          conversationId: activeConvId,
-          message: sentMessage,
-          receiverId: otherUser?.id,
-        });
+        // Server broadcasts the new message to the room; no client re-broadcast needed
 
         // Add to local state if not already received from socket
         setMessages((prev) => {

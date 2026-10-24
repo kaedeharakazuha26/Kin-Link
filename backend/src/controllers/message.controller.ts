@@ -215,7 +215,8 @@ export const sendMessage = async (req: AuthenticatedRequest, res: Response): Pro
       const io = req.app.get('io');
       if (io) {
         io.to(`conv_${conversationId}`).emit('new_message', newMessage);
-        io.emit('message_notification', {
+        // Notify only the two participants (their personal rooms), not every connected user
+        io.to(`user_${receiverId}`).to(`user_${senderId}`).emit('message_notification', {
           conversationId,
           receiverId,
           message: newMessage,
